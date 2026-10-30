@@ -2253,26 +2253,13 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         }
 
-        // Monocular depth (Depth-Anything-small) gives every photo a near/far ordering
-        async function runDepth(token) {
+        // Monocular depth (Depth-Anything V2 small, in the AI worker) gives every photo a near/far ordering
+        async function runDepth(token, cache, dataUrl) {
             try {
-                if (!DEPTH.pipe) {
-                    setSegStatus('Pobieram model głębi (jednorazowo, ok. 25 MB)…');
-                    DEPTH.pipe = await SEG.lib.pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
-                        progress_callback: modelProgress('Pobieranie modelu głębi')
-                    });
-                }
+                const m = await aiStage(cache, 'depth', dataUrl, 'Głębia sceny (Depth V2)', 27);
                 if (token !== SEG.token) return;
-                setSegStatus('Szacuję głębię sceny…');
-                setProcessingStatus('Szacuję głębię sceny…');
-                const iw = sourceImage.naturalWidth || sourceImage.width, ih = sourceImage.naturalHeight || sourceImage.height;
-                const r = Math.min(1, 640 / Math.max(iw, ih));
-                const c = document.createElement('canvas');
-                c.width = Math.max(8, Math.round(iw * r)); c.height = Math.max(8, Math.round(ih * r));
-                c.getContext('2d').drawImage(sourceImage, 0, 0, c.width, c.height);
-                const out = await DEPTH.pipe(c.toDataURL('image/jpeg', 0.92));
-                if (token !== SEG.token) return;
-                const m = out.depth, n = m.width * m.height, src = m.data;
+                if (!m) throw new Error('depth unavailable');
+                const n = m.width * m.height, src = m.data;
                 const hist = new Uint32Array(256);
                 for (let i = 0; i < n; i++) hist[src[i]]++;
                 let a = 0, lo = 0, hi = 255;
@@ -2378,7 +2365,7 @@
             const TJS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
             const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.mjs';
             const EDGE_URL = 'https://huggingface.co/bdck/PiDiNet_ONNX/resolve/main/pidinet_table5.onnx';
-            let lib = null, matte = null, sam = null, edge = null;
+            let lib = null, matte = null, sam = null, edge = null, depth = null;
 
             async function getLib() {
                 if (!lib) lib = await import(TJS);
@@ -2422,6 +2409,20 @@
                 const { pixel_values } = await matte.processor(img);
                 const { output } = await matte.model({ input: pixel_values });
                 const m = await L.RawImage.fromTensor(output[0].mul(255).to('uint8')).resize(img.width, img.height);
+                const data = new Uint8Array(m.data);
+                return { result: { width: m.width, height: m.height, data }, transfer: [data.buffer] };
+            }
+
+            async function runDepthV2(image, stage) {
+                const L = await getLib();
+                if (!depth) {
+                    depth = await L.pipeline('depth-estimation', 'onnx-community/depth-anything-v2-small', {
+                        dtype: 'q8',
+                        progress_callback: (p) => self.postMessage({ stage, progress: p })
+                    });
+                }
+                const out = await depth(image);
+                const m = out.depth;
                 const data = new Uint8Array(m.data);
                 return { result: { width: m.width, height: m.height, data }, transfer: [data.buffer] };
             }
@@ -2522,7 +2523,7 @@
             self.onmessage = async (e) => {
                 const { id, task, image, stage } = e.data;
                 try {
-                    const fn = task === 'matte' ? runMatte : (task === 'sam' ? runSam : runEdge);
+                    const fn = task === 'matte' ? runMatte : (task === 'sam' ? runSam : (task === 'depth' ? runDepthV2 : runEdge));
                     const { result, transfer } = await fn(image, stage);
                     self.postMessage({ id, result }, transfer);
                 } catch (err) {
@@ -2735,7 +2736,7 @@
                 }
                 execute4PassPipeline();
                 syncSlidersUI();
-                await runDepth(token);
+                await runDepth(token, cache, dataUrl);
                 if (DEPTH.ready) setSegStatus(`Wykryto ${SEG.items.length} elementów + mapa głębi — przypisz im płyty koloru`);
                 if (token === SEG.token) setProcessingStatus('', null, false);
             } catch (err) {
