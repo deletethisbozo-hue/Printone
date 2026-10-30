@@ -3600,11 +3600,18 @@
         });
 
         // Bind Engraving Mode Buttons
+        let screenToneAuto = false;
         document.querySelectorAll('.engrave-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                const prev = state.engraveMode;
                 state.engraveMode = parseInt(btn.dataset.mode, 10);
                 if (state.engraveMode === 3 && state.screenToneAmount === 0) {
                     state.screenToneAmount = STYLE_DEFAULTS[3].screenToneAmount;
+                    screenToneAuto = true;
+                } else if (prev === 3 && state.engraveMode !== 3 && (screenToneAuto || [68, 74].includes(state.screenToneAmount))) {
+                    // Raster added automatically by the stipple style must not leak into other styles
+                    state.screenToneAmount = 0;
+                    screenToneAuto = false;
                 }
                 syncSlidersUI();
                 execute4PassPipeline();
@@ -3628,6 +3635,7 @@
         bindRange('paramSpecularPop', 'specularPop', parseInt);
         bindRange('paramRaggedness', 'raggedness', parseInt);
         bindRange('paramScreenToneAmount', 'screenToneAmount', parseInt);
+        document.getElementById('paramScreenToneAmount').addEventListener('input', () => { screenToneAuto = false; });
         bindRange('paramInkSplatter', 'inkSplatter', parseInt);
         bindRange('paramGrainAmount', 'grainAmount', parseInt);
         bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
