@@ -355,6 +355,13 @@
                         </div>
                         <input type="range" id="paramRaggedness" min="0" max="100" step="1" value="12">
                     </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Gładkość kształtów (wektor)</span>
+                            <span id="valShapeSmooth" class="font-mono text-sky-300">60%</span>
+                        </div>
+                        <input type="range" id="paramShapeSmooth" min="0" max="100" step="1" value="60">
+                    </div>
                 </section>
 
                 <!-- 5. Ekspozycja Płyt i Lokalny Kontrast -->
@@ -1026,23 +1033,74 @@
                 comp = mix(comp, u_colorInk, internalEdge * u_inkWeight * 0.65);
             }
 
-            // Optional Engraved Border Frame
-            if (u_showFrame) {
-                vec2 edgeDist = min(v_uv, 1.0 - v_uv);
-                float d = min(edgeDist.x * aspect, edgeDist.y);
-                if (d < 0.016) comp = u_colorInk;
-                else if (d > 0.020 && d < 0.023) comp = u_colorMid;
-            }
-
-            if (u_splitRatio > 0.001) {
-                float splitLine = smoothstep(0.0025, 0.0, abs(v_uv.x - u_splitRatio));
-                comp = mix(comp, vec3(1.0, 0.15, 0.15), splitLine);
-            }
-
             outColor = vec4(clamp(comp, 0.0, 1.0), 1.0);
         }
     </script>
 
+
+    <!-- PASS 5: shape regularisation. Turns the plate map into clean, smooth, vector-like regions:
+         every pixel votes for its nearest palette plate in a neighbourhood, the winner takes the pixel,
+         and the border between the two strongest plates is anti-aliased. -->
+    <script id="fsPass5Shapes" type="x-shader/x-fragment">#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        out vec4 outColor;
+        uniform sampler2D u_tex;
+        uniform vec2 u_resolution;
+        uniform float u_smooth;
+        uniform vec3 u_pal[7];
+        uniform int u_showFrame;
+        uniform float u_splitRatio;
+
+        int nearestPlate(vec3 c) {
+            int best = 0; float bd = 1e9;
+            for (int k = 0; k < 7; k++) {
+                vec3 d = c - u_pal[k];
+                float dd = dot(d, d);
+                if (dd < bd) { bd = dd; best = k; }
+            }
+            return best;
+        }
+
+        void main() {
+            vec3 comp = texture(u_tex, v_uv).rgb;
+            if (u_smooth > 0.01) {
+                float px = max(u_resolution.x, u_resolution.y) / 1400.0;
+                float stride = (0.45 + u_smooth * 1.9) * px;
+                float w[7];
+                for (int k = 0; k < 7; k++) w[k] = 0.0;
+                for (int j = -3; j <= 3; j++) {
+                    for (int i = -3; i <= 3; i++) {
+                        float g = exp(-float(i * i + j * j) / 7.0);
+                        vec3 c = texture(u_tex, v_uv + vec2(float(i), float(j)) * stride / u_resolution).rgb;
+                        w[nearestPlate(c)] += g;
+                    }
+                }
+                // Small bright accents (eyes, blade, buckle) must survive the vote
+                w[4] *= 2.6;
+                int b1 = 0;
+                for (int k = 1; k < 7; k++) if (w[k] > w[b1]) b1 = k;
+                int b2 = (b1 == 0) ? 1 : 0;
+                for (int k = 0; k < 7; k++) if (k != b1 && w[k] > w[b2]) b2 = k;
+                float tot = max(w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + w[6], 1e-4);
+                float t = smoothstep(0.0, 0.10, (w[b1] - w[b2]) / tot);
+                comp = mix(u_pal[b2], u_pal[b1], 0.5 + 0.5 * t);
+            }
+
+            float aspect = u_resolution.x / max(u_resolution.y, 1.0);
+            if (u_showFrame == 1) {
+                vec2 edgeDist = min(v_uv, 1.0 - v_uv);
+                float d = min(edgeDist.x * aspect, edgeDist.y);
+                if (d < 0.016) comp = u_pal[0];
+                else if (d > 0.020 && d < 0.023) comp = u_pal[2];
+            }
+            if (u_splitRatio > 0.001) {
+                float splitLine = smoothstep(0.0025, 0.0, abs(v_uv.x - u_splitRatio));
+                comp = mix(comp, vec3(1.0, 0.15, 0.15), splitLine);
+            }
+            outColor = vec4(clamp(comp, 0.0, 1.0), 1.0);
+        }
+    </script>
     <!-- ============================================================================
          APPLICATION CONTROLLER, AI SEMANTIC RESTYLE & PROCEDURAL GUARDIAN SCENE
          ============================================================================ -->
@@ -1156,7 +1214,7 @@
             inkWeight: 88,
             lineThickness: 1.5,
             specularPop: 90,
-            raggedness: 8,
+            raggedness: 8, shapeSmooth: 60,
             shadowDetail: 76,
             shadowCutoff: 0.34,
             highCutoff: 0.54,
@@ -1210,6 +1268,8 @@
         let progPass2 = null;
         let progPass3 = null;
         let progPass4 = null;
+        let progPass5 = null;
+        let texPass4 = null, fboPass4 = null;
         let quadVAO = null;
 
         let texSource = null;
@@ -1284,6 +1344,7 @@
             progPass2 = buildProgram(gl, vsSrc, document.getElementById('fsPass2FlowAndXDoG').textContent);
             progPass3 = buildProgram(gl, vsSrc, document.getElementById('fsPass3LIC').textContent);
             progPass4 = buildProgram(gl, vsSrc, document.getElementById('fsPass4Compositor').textContent);
+            progPass5 = buildProgram(gl, vsSrc, document.getElementById('fsPass5Shapes').textContent);
 
             const quadVerts = new Float32Array([
                 -1, -1,  0, 0,
@@ -1301,7 +1362,7 @@
             gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
             gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
 
-            [progPass1, progPass2, progPass3, progPass4].forEach(p => {
+            [progPass1, progPass2, progPass3, progPass4, progPass5].forEach(p => {
                 const posLoc = gl.getAttribLocation(p, 'a_position');
                 const uvLoc  = gl.getAttribLocation(p, 'a_texCoord');
                 gl.enableVertexAttribArray(posLoc);
@@ -1314,6 +1375,7 @@
             texPass1  = gl.createTexture(); fboPass1 = gl.createFramebuffer();
             texPass2  = gl.createTexture(); fboPass2 = gl.createFramebuffer();
             texPass3  = gl.createTexture(); fboPass3 = gl.createFramebuffer();
+            texPass4  = gl.createTexture(); fboPass4 = gl.createFramebuffer();
 
             return true;
         }
@@ -1344,7 +1406,8 @@
             [
                 [texPass1, fboPass1],
                 [texPass2, fboPass2],
-                [texPass3, fboPass3]
+                [texPass3, fboPass3],
+                [texPass4, fboPass4]
             ].forEach(([tex, fbo]) => {
                 setupTexture2D(tex, w, h, null, false);
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
@@ -1407,7 +1470,7 @@
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
             // --- PASS 4: Master 5-Plate Mignola Graphic Novel Compositor ---
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fboPass4);
             gl.useProgram(progPass4);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texPass3);
@@ -1440,6 +1503,23 @@
             gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, lutTex);
             gl.uniform1i(gl.getUniformLocation(progPass4, 'u_lutTex'), 4);
             gl.activeTexture(gl.TEXTURE0);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // --- PASS 5: smooth, regularised vector shapes + final anti-aliasing ---
+            const ink = hexToRgb(state.colorInk), slate = hexToRgb(state.colorSlate), mid = hexToRgb(state.colorMid),
+                  sky = hexToRgb(state.colorSky), high = hexToRgb(state.colorHigh);
+            const mx = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+            const pal = [ink, slate, mid, sky, high, mx(mid, ink, 0.32), mx(sky, slate, 0.62)];
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.useProgram(progPass5);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texPass4);
+            gl.uniform1i(gl.getUniformLocation(progPass5, 'u_tex'), 0);
+            gl.uniform2f(gl.getUniformLocation(progPass5, 'u_resolution'), w, h);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_smooth'), state.engraveMode >= 2 ? 0 : state.shapeSmooth / 100.0);
+            gl.uniform3fv(gl.getUniformLocation(progPass5, 'u_pal'), new Float32Array(pal.flat()));
+            gl.uniform1i(gl.getUniformLocation(progPass5, 'u_showFrame'), state.showFrame ? 1 : 0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_splitRatio'), state.splitRatio);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
         }
 
@@ -2169,6 +2249,8 @@
 
             document.getElementById('paramRaggedness').value = state.raggedness;
             document.getElementById('valRaggedness').textContent = `${state.raggedness}%`;
+            document.getElementById('paramShapeSmooth').value = state.shapeSmooth;
+            document.getElementById('valShapeSmooth').textContent = `${state.shapeSmooth}%`;
 
             document.getElementById('paramShadowDetail').value = state.shadowDetail;
             document.getElementById('valShadowDetail').textContent = `${state.shadowDetail}%`;
@@ -2267,6 +2349,7 @@
         bindRange('paramLineThickness', 'lineThickness', parseFloat);
         bindRange('paramSpecularPop', 'specularPop', parseInt);
         bindRange('paramRaggedness', 'raggedness', parseInt);
+        bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
         bindRange('paramShadowDetail', 'shadowDetail', parseInt);
         bindRange('paramShadowCutoff', 'shadowCutoff', parseFloat);
         bindRange('paramHighCutoff', 'highCutoff', parseFloat);
