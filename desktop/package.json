@@ -40,7 +40,9 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
+      "createStartMenuShortcut": true,
+      "differentialPackage": false
+    },
+    "publish": [{ "provider": "generic", "url": "http://localhost/printone" }]
   }
 }

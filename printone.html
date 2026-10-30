@@ -666,6 +666,14 @@
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Grubość linii PiDiNet</span>
+                            <span id="valAiThick" class="font-mono text-sky-300">50%</span>
+                        </div>
+                        <input type="range" id="paramAiThick" aria-label="Grubość linii PiDiNet" min="0" max="100" step="1" value="50">
+                        <p class="text-[9px] text-white/45">0% = cienkie, ostre kreski; 100% = grube, pędzlowe kontury.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
                             <span class="text-white/80">Rysunek liniowy AI (szkic)</span>
                             <span id="valSketch" class="font-mono text-sky-300">40%</span>
                         </div>
@@ -687,6 +695,23 @@
                         </div>
                         <input type="range" id="paramHatch" aria-label="Szrafura" min="0" max="100" step="1" value="45">
                         <p class="text-[9px] text-white/45">Ręczne kreski w półcieniach, gęstsze w ciemniejszych partiach, jak w rycinie.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-white/80">Gęstość szrafury</span><span id="valHatchDensity" class="font-mono text-sky-300">55%</span></div>
+                        <input type="range" id="paramHatchDensity" aria-label="Gęstość szrafury" min="0" max="100" step="1" value="55">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-white/80">Grubość kresek</span><span id="valHatchThick" class="font-mono text-sky-300">50%</span></div>
+                        <input type="range" id="paramHatchThick" aria-label="Grubość kresek" min="0" max="100" step="1" value="50">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-white/80">Kąt kresek</span><span id="valHatchAngle" class="font-mono text-sky-300">45°</span></div>
+                        <input type="range" id="paramHatchAngle" aria-label="Kąt kresek" min="0" max="180" step="1" value="45">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-white/80">Kreskowanie krzyżowe</span><span id="valHatchCross" class="font-mono text-sky-300">55%</span></div>
+                        <input type="range" id="paramHatchCross" aria-label="Kreskowanie krzyżowe" min="0" max="100" step="1" value="55">
+                        <p class="text-[9px] text-white/45">Ile ciemnych partii dostaje drugą warstwę kresek pod kątem prostym.</p>
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
@@ -1411,6 +1436,12 @@
                 }
             }            float cloudAa = max(fwidth(puff) * 0.8, 0.004);
             float cloudMask = smoothstep(-cloudAa, cloudAa, puff);
+            // Torn, brush-like cloud banks instead of round bubbles: warped noise stretched horizontally
+            vec2 cw = metricUV * vec2(2.6, 6.5);
+            cw += vec2(fbm(cw * 1.7 + 4.0), fbm(cw * 1.7 + 9.0)) * 0.9;
+            float cn = fbm(cw * vec2(1.0, 1.6)) + (fbm(metricUV * vec2(34.0, 70.0)) - 0.5) * 0.16;
+            float cloudThr2 = 0.66 - u_skySplit * 0.20;
+            cloudMask = smoothstep(cloudThr2 - 0.012, cloudThr2 + 0.012, cn) * (0.35 + 0.65 * cloudMask);
 
             float sculptedLuma = luma + grainMod;
 
@@ -1530,10 +1561,15 @@
         uniform float u_grainAmount;
         uniform sampler2D u_edgeTex;  // AI edge map (PiDiNet), 1 = contour
         uniform float u_edgeAmt;      // 0 when the edge map is unavailable
+        uniform float u_edgeThick;
         uniform sampler2D u_xdogTex;  // source image for the XDoG line pass
         uniform float u_xdogAmt;
         uniform float u_detailAmt;
         uniform float u_hatchAmt;
+        uniform float u_hatchSp;
+        uniform float u_hatchTh;
+        uniform float u_hatchAng;
+        uniform float u_hatchCross;
         uniform sampler2D u_sketchTex; // AI line-art model output, 1 = line // AI line-art model output, 1 = line
         uniform float u_sketchAmt;
 
@@ -1591,8 +1627,8 @@
 
             if (u_edgeAmt > 0.001) {
                 float e = texture(u_edgeTex, v_uv).r;
-                float thr = 0.80 - 0.5 * u_edgeAmt;
-                float line = smoothstep(thr, thr + 0.12, e);
+                float thr = 0.80 - 0.5 * u_edgeAmt + (0.5 - u_edgeThick) * 0.5;
+                float line = smoothstep(thr, thr + mix(0.04, 0.14, u_edgeThick), e);
                 comp = mix(comp, u_pal[0], line * clamp(u_edgeAmt * 2.5, 0.0, 1.0));
             }
 
@@ -1648,12 +1684,14 @@
                 if (u_hatchAmt > 0.001 && k >= 1 && k <= 3) {
                     vec2 p = v_uv * u_resolution / px;
                     float wob = (valueNoise(p * 0.045) - 0.5) * 2.2 + (valueNoise(p * 0.3) - 0.5) * 0.35;
-                    float sp = 4.6;
-                    float d1 = abs(fract((p.x + p.y) / (sp * 1.4142) + wob) - 0.5) * 2.0;
-                    float d2 = abs(fract((p.x - p.y) / (sp * 1.4142) + wob * 0.8 + 0.31) - 0.5) * 2.0;
+                    float ca = cos(u_hatchAng), sa = sin(u_hatchAng);
+                    vec2 q = vec2(ca * p.x + sa * p.y, -sa * p.x + ca * p.y);
+                    float sp = u_hatchSp;
+                    float d1 = abs(fract(q.x / sp + wob) - 0.5) * 2.0;
+                    float d2 = abs(fract(q.y / sp + wob * 0.8 + 0.31) - 0.5) * 2.0;
                     float dark = clamp((0.60 - lL) / 0.45, 0.0, 1.0);
-                    float w1 = dark * u_hatchAmt * 1.15;
-                    float w2 = smoothstep(0.55, 1.0, dark) * u_hatchAmt * 0.9;
+                    float w1 = dark * u_hatchAmt * 1.15 * u_hatchTh;
+                    float w2 = smoothstep(1.0 - u_hatchCross, 1.0 - u_hatchCross + 0.35, dark) * u_hatchAmt * 0.9 * u_hatchTh * step(0.01, u_hatchCross);
                     float aa = 0.28;
                     float h = max(1.0 - smoothstep(w1 - aa, w1 + aa * 0.5, d1), (1.0 - smoothstep(w2 - aa, w2 + aa * 0.5, d2)) * step(0.01, w2));
                     h *= smoothstep(0.02, 0.12, dark);
@@ -1716,6 +1754,11 @@
                 xdogLines: 0,
                 detailAmt: 60,
                 hatchAmt: 45,
+                hatchDensity: 55,
+                hatchThick: 50,
+                hatchAngle: 45,
+                hatchCross: 55,
+                aiLineThick: 50,
                 sketchLines: 40,
                 shadowDetail: 74,
                 shadowCutoff: 0.36,
@@ -1925,7 +1968,7 @@
             inkWeight: 88,
             lineThickness: 1.5,
             specularPop: 90,
-            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35, xdogLines: 0, detailAmt: 60, hatchAmt: 45, sketchLines: 40,
+            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35, xdogLines: 0, detailAmt: 60, hatchAmt: 45, hatchDensity: 55, hatchThick: 50, hatchAngle: 45, hatchCross: 55, aiLineThick: 50, sketchLines: 40,
             shadowDetail: 76,
             shadowCutoff: 0.34,
             highCutoff: 0.54,
@@ -2244,12 +2287,17 @@
             gl.bindTexture(gl.TEXTURE_2D, EDGE.tex);
             gl.uniform1i(gl.getUniformLocation(progPass5, 'u_edgeTex'), 1);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_edgeAmt'), EDGE.ready ? state.aiLines / 100.0 : 0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_edgeThick'), state.aiLineThick / 100.0);
             gl.activeTexture(gl.TEXTURE2);
             gl.bindTexture(gl.TEXTURE_2D, texSource);
             gl.uniform1i(gl.getUniformLocation(progPass5, 'u_xdogTex'), 2);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_xdogAmt'), state.xdogLines / 100.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_detailAmt'), state.detailAmt / 100.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchAmt'), state.hatchAmt / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchSp'), 2.5 + state.hatchDensity / 100.0 * 0 + (100 - state.hatchDensity) / 100.0 * 9.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchTh'), 0.4 + state.hatchThick / 100.0 * 1.4);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchAng'), state.hatchAngle * Math.PI / 180);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchCross'), state.hatchCross / 100.0);
             ensureSketchTexture();
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, SKETCH.tex);
@@ -3689,6 +3737,10 @@
             document.getElementById('paramDetail').value = state.detailAmt;
             document.getElementById('valDetail').textContent = `${state.detailAmt}%`;
             document.getElementById('paramHatch').value = state.hatchAmt;
+            [['HatchDensity', 'hatchDensity', '%'], ['HatchThick', 'hatchThick', '%'], ['HatchAngle', 'hatchAngle', '°'], ['HatchCross', 'hatchCross', '%'], ['AiThick', 'aiLineThick', '%']].forEach(([id, key, u]) => {
+                document.getElementById('param' + id).value = state[key];
+                document.getElementById('val' + id).textContent = `${state[key]}${u}`;
+            });
             document.getElementById('valHatch').textContent = `${state.hatchAmt}%`;
             document.getElementById('paramSketch').value = state.sketchLines;
             document.getElementById('valSketch').textContent = `${state.sketchLines}%`;
@@ -3829,6 +3881,11 @@
         bindRange('paramXdog', 'xdogLines', parseInt);
         bindRange('paramDetail', 'detailAmt', parseInt);
         bindRange('paramHatch', 'hatchAmt', parseInt);
+        bindRange('paramHatchDensity', 'hatchDensity', parseInt);
+        bindRange('paramHatchThick', 'hatchThick', parseInt);
+        bindRange('paramHatchAngle', 'hatchAngle', parseInt);
+        bindRange('paramHatchCross', 'hatchCross', parseInt);
+        bindRange('paramAiThick', 'aiLineThick', parseInt);
         bindRange('paramSketch', 'sketchLines', parseInt);
         bindRange('paramShadowDetail', 'shadowDetail', parseInt);
         bindRange('paramShadowCutoff', 'shadowCutoff', parseFloat);
