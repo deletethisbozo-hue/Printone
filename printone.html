@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Printone — Profesjonalny Silnik Ryciny, Tuszu i Sitodruku</title>
+    <title>Printone — Studio ilustracji plakatowej</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -142,12 +142,302 @@
             background: linear-gradient(135deg, rgba(244, 63, 94, 0.18) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
             box-shadow: 0 0 20px rgba(244, 63, 94, 0.22);
         }
+
+        :root {
+            color-scheme: dark;
+            --app-bg: #101216;
+            --panel-bg: #171a20;
+            --panel-raised: #1d2128;
+            --line: #2b3039;
+            --text: #e7e9ed;
+            --muted: #9ba2ad;
+            --accent: #d97757;
+            --accent-soft: rgba(217, 119, 87, .15);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            display: block !important;
+            padding: 0 !important;
+            color: var(--text);
+            background: var(--app-bg);
+            font-family: Inter, "Segoe UI", system-ui, sans-serif;
+            overflow: hidden;
+        }
+        .font-display, .font-mono { font-family: inherit; }
+        #appShell {
+            width: 100% !important;
+            max-width: none !important;
+            height: 100dvh !important;
+            border: 0;
+            border-radius: 0 !important;
+            background: var(--app-bg);
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        #appShell > aside {
+            width: 390px !important;
+            background: var(--panel-bg) !important;
+            border-color: var(--line) !important;
+        }
+        #appShell > aside > div:first-child {
+            min-height: 64px;
+            padding: 12px 18px !important;
+            background: #191c22;
+            border-color: var(--line) !important;
+        }
+        #appShell > aside > div:first-child h1 {
+            font-family: Inter, "Segoe UI", system-ui, sans-serif;
+            font-size: 15px !important;
+            letter-spacing: .12em;
+        }
+        #appShell > aside > div:first-child p {
+            font-size: 10px !important;
+            letter-spacing: .02em;
+            text-transform: none;
+        }
+        #appShell > aside > div:first-child > div:first-child > div:first-child {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--panel-raised);
+            box-shadow: none;
+        }
+        #appShell > aside > div:first-child > div:first-child > div:first-child > div {
+            background: var(--panel-raised);
+        }
+        #resolutionBadge {
+            font-size: 10px;
+            color: #c4c8cf;
+            background: #22262d;
+            border-color: var(--line);
+            border-radius: 6px;
+        }
+        #appShell > aside > div:nth-child(2) {
+            padding: 14px !important;
+            background: var(--panel-bg);
+            scrollbar-width: thin;
+        }
+        .glass-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--line);
+            border-radius: 9px !important;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        .glass-card:hover { background: var(--panel-bg); border-color: #3b424d; }
+        .glass-button {
+            color: var(--text);
+            background: #22262d;
+            border: 1px solid #343a44;
+            border-radius: 7px !important;
+            box-shadow: none;
+            transition: background .15s ease, border-color .15s ease;
+        }
+        .glass-button:hover:not(:disabled) {
+            background: #2a3038;
+            border-color: #59616e;
+            transform: none;
+            box-shadow: none;
+        }
+        .glass-button-primary {
+            background: #a74d36;
+            border: 1px solid #bd6249;
+            border-radius: 7px !important;
+            box-shadow: none;
+        }
+        .glass-button-primary:hover:not(:disabled) { background: #bc5b40; box-shadow: none; transform: none; }
+        #vectorizeBtn {
+            background: #303943 !important;
+            border: 1px solid #49535f !important;
+            box-shadow: none !important;
+        }
+        #vectorizeBtn:hover { background: #3a4651 !important; }
+        #appShell section {
+            padding: 14px !important;
+            border-color: var(--line) !important;
+            border-radius: 9px !important;
+        }
+        #appShell section h2 {
+            color: #e0e3e8;
+            font-size: 11px !important;
+            letter-spacing: .045em;
+            line-height: 1.4;
+        }
+        #appShell section h2 > span:first-child { width: 7px; height: 7px; }
+        #appShell section [class*="text-white/80"] { color: #c5cad2 !important; }
+        #appShell section [class*="text-white/50"] { color: var(--muted) !important; }
+        #appShell section [class*="text-white/45"] { color: var(--muted) !important; }
+        #appShell section [class*="text-white/55"] { color: var(--muted) !important; }
+        #appShell section [class*="text-white/85"] { color: #d7dbe1 !important; }
+        #appShell section .text-xs { font-size: 11px !important; }
+        #appShell section .text-\\[9px\\] { font-size: 10px !important; }
+        #appShell section .text-\\[10px\\] { font-size: 10px !important; }
+        #appShell section .text-\\[11px\\] { font-size: 11px !important; }
+        #appShell section input[type="range"] { margin: 3px 0 2px; }
+        input[type="range"] {
+            height: 4px;
+            background: #3a404a;
+            accent-color: var(--accent);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+            background: #e4a087;
+            border: 2px solid #252a31;
+            box-shadow: 0 0 0 1px #e4a087;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 11px;
+            height: 11px;
+            background: #e4a087;
+            border: 2px solid #252a31;
+            box-shadow: 0 0 0 1px #e4a087;
+        }
+        input[type="range"]:disabled { opacity: .4; cursor: not-allowed; }
+        input[type="color"] { height: 28px; }
+        .studio-bg {
+            background-color: #101216;
+            background-image:
+                linear-gradient(45deg, #171a1f 25%, transparent 25%),
+                linear-gradient(-45deg, #171a1f 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #171a1f 75%),
+                linear-gradient(-45deg, transparent 75%, #171a1f 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        }
+        .preset-active {
+            border-color: #cf795d !important;
+            background: #30231f !important;
+            box-shadow: inset 0 0 0 1px rgba(207,121,93,.16) !important;
+        }
+        #paletteGrid {
+            max-height: 244px;
+            overflow: auto;
+            padding: 1px 3px 1px 1px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            scrollbar-width: thin;
+        }
+        .palette-disclosure > summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 36px;
+            padding: 8px 10px;
+            color: #d7dbe1;
+            background: #20242b;
+            border: 1px solid #343a44;
+            border-radius: 7px;
+            cursor: pointer;
+            list-style: none;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .palette-disclosure > summary::-webkit-details-marker { display: none; }
+        .palette-disclosure[open] > summary { margin-bottom: 8px; border-color: #59616e; }
+        .palette-disclosure .palette-chevron { color: #9ba2ad; transition: transform .15s ease; }
+        .palette-disclosure[open] .palette-chevron { transform: rotate(180deg); }
+        .palette-card {
+            min-height: 68px;
+            padding: 9px !important;
+            gap: 5px !important;
+            background: #20242b;
+        }
+        .palette-card .palette-name {
+            font-size: 11px !important;
+            line-height: 1.25;
+            color: #e4e6ea !important;
+        }
+        .palette-card .palette-subtitle {
+            font-size: 9px !important;
+            line-height: 1.3;
+            color: #a8afb9 !important;
+        }
+        .palette-card .palette-swatches { display: flex; width: 100%; height: 7px; border-radius: 4px; overflow: hidden; }
+        .palette-card .palette-swatches span { flex: 1; border: 0 !important; border-radius: 0 !important; }
+        #engravingModeGroup { gap: 7px !important; }
+        .engrave-btn {
+            min-height: 68px;
+            padding: 10px !important;
+            background: #20242b;
+        }
+        .engrave-btn > div:first-child { font-size: 11px !important; color: #e4e6ea !important; }
+        .engrave-btn > div:last-child { margin-top: 4px; font-size: 10px !important; line-height: 1.35; color: #a8afb9 !important; }
+        .studio-bg #glCanvas {
+            max-width: min(94%, calc(100vw - 430px)) !important;
+            max-height: 86% !important;
+            border: 1px solid #555c66;
+            border-radius: 3px !important;
+            box-shadow: 0 16px 48px rgba(0,0,0,.45) !important;
+        }
+        #viewportContainer { cursor: grab; }
+        #viewportContainer:active { cursor: grabbing; }
+        #toastMessage { background: #242830; border-color: #414751; backdrop-filter: none; }
+        #emptyState {
+            position: absolute;
+            inset: 56px 20px 60px;
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            border: 1px dashed #3d444f;
+            border-radius: 10px;
+            background: rgba(18, 21, 26, .72);
+            text-align: center;
+            pointer-events: none;
+        }
+        #emptyState[hidden] { display: none; }
+        #emptyState .empty-state-card { max-width: 320px; padding: 24px; }
+        #emptyStateOpenBtn { pointer-events: auto; }
+        #processingIndicator {
+            position: absolute;
+            left: 50%;
+            bottom: 62px;
+            z-index: 25;
+            width: min(360px, calc(100% - 32px));
+            padding: 10px 12px;
+            transform: translateX(-50%);
+            color: #e7e9ed;
+            background: rgba(26, 29, 35, .96);
+            border: 1px solid #3b424d;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.3);
+            pointer-events: none;
+        }
+        #processingIndicator[hidden] { display: none; }
+        .progress-track { height: 3px; margin-top: 7px; overflow: hidden; background: #373d47; border-radius: 4px; }
+        #processingProgress { height: 100%; width: 0; background: #d97757; transition: width .2s ease; }
+        #processingProgress.indeterminate { width: 34%; animation: progress-slide 1.15s ease-in-out infinite alternate; }
+        @keyframes progress-slide { from { transform: translateX(0); } to { transform: translateX(195%); } }
+        @media (prefers-reduced-motion: reduce) { #processingProgress.indeterminate { animation: none; width: 70%; } }
+        :focus-visible { outline: 2px solid #e49a7d; outline-offset: 2px; }
+        @media (min-width: 761px) {
+            #appShell { flex-direction: row !important; }
+            #appShell > aside { height: 100% !important; min-height: 0; }
+            #appShell > main { height: 100% !important; min-height: 0; }
+        }
+        @media (max-width: 760px) {
+            body { overflow: auto; }
+            #appShell { height: auto !important; min-height: 100dvh; flex-direction: column !important; }
+            #appShell > aside { width: 100% !important; height: 54dvh !important; min-height: 360px; }
+            #appShell > main { height: 46dvh !important; min-height: 300px; }
+            #emptyState { inset: 8px; overflow: auto; }
+            #emptyState .empty-state-card { max-width: 100%; padding: 8px; }
+            #emptyState .empty-state-card > div:first-child { display: none; }
+            #emptyState .empty-state-card p { margin-top: 4px; }
+            #emptyStateOpenBtn { margin-top: 8px; }
+            .studio-bg #glCanvas { max-width: 90vw !important; max-height: 36dvh !important; }
+            #paletteGrid { max-height: 200px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex items-center justify-center p-2 sm:p-3 md:p-5 select-none">
 
     <!-- Main Application Shell -->
-    <div class="glass-shell w-full max-w-[1680px] h-full rounded-3xl flex flex-col lg:flex-row overflow-hidden relative">
+    <div id="appShell" class="glass-shell w-full max-w-[1680px] h-full rounded-3xl flex flex-col lg:flex-row overflow-hidden relative">
         
         <!-- LEFT PANEL: Engine Controls -->
         <aside class="w-full lg:w-[430px] xl:w-[465px] h-[54vh] lg:h-full flex flex-col border-b lg:border-b-0 lg:border-r border-white/10 bg-black/35 z-20 shrink-0">
@@ -167,9 +457,9 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="font-display text-xl font-bold tracking-wider text-white leading-none">PRINT<span class="font-light text-rose-400">ONE</span></h1>
-                            <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">PRO v5.0</span>
+                            <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">STUDIO</span>
                         </div>
-                        <p class="text-[10px] text-white/50 tracking-wider uppercase mt-0.5">Mignola Vector Cutout & AI Studio</p>
+                        <p class="text-[10px] text-white/50 tracking-wider uppercase mt-0.5">Ilustracja z ograniczoną paletą</p>
                     </div>
                 </div>
                 <span id="resolutionBadge" class="text-[10px] font-mono text-white/70 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">1200 × 1800 px</span>
@@ -182,37 +472,24 @@
                 <section class="glass-card rounded-2xl p-3.5 space-y-2.5">
                     <div class="flex items-center justify-between">
                         <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> 1. Źródło Obrazu i Wektor Tuszem
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Obraz źródłowy
                         </h2>
                         <span class="text-[10px] text-white/45">Obsługa 4K / 8K</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-1.5">
+                    <div>
                         <label class="glass-button col-span-2 py-2.5 px-4 rounded-xl text-center cursor-pointer font-medium text-xs flex items-center justify-center gap-2 text-white">
                             <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                            Wgraj własne zdjęcie (JPG, PNG, WEBP)
+                            Otwórz obraz (JPG, PNG, WEBP)
                             <input type="file" id="fileInput" accept="image/*" class="hidden">
                         </label>
-                        <button id="sampleGuardianBtn" class="glass-button py-1.5 px-2 rounded-lg text-[11px] text-white/90 hover:text-white flex items-center justify-center gap-1 border-rose-500/40">
-                            <span>🗡️</span> Strażnik w Alei
-                        </button>
-                        <button id="sampleGreenKnightBtn" class="glass-button py-1.5 px-2 rounded-lg text-[11px] text-white/85 hover:text-white flex items-center justify-center gap-1">
-                            <span>🦌</span> Rycerz Lasu
-                        </button>
-                        <button id="sampleSerpentBtn" class="glass-button py-1.5 px-2 rounded-lg text-[11px] text-white/85 hover:text-white flex items-center justify-center gap-1">
-                            <span>💀</span> Szkielet i Wąż
-                        </button>
-                        <button id="sampleEclipseBtn" class="glass-button py-1.5 px-2 rounded-lg text-[11px] text-white/85 hover:text-white flex items-center justify-center gap-1">
-                            <span>👑</span> Zaćmienie
-                        </button>
                     </div>
 
-                    <!-- Native Mathematical Vectorization Engine Button -->
                     <div class="pt-2 border-t border-white/10">
                         <button id="vectorizeBtn" class="w-full py-2 px-3 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-rose-600/90 via-amber-600/90 to-emerald-600/90 hover:from-rose-500 hover:to-emerald-500 border border-white/25 shadow-lg flex items-center justify-center gap-2 transition-all">
-                            <span>⚡</span>
-                            <span>Uruchom Mignola Vectorizer (Czysty Tusz)</span>
+                            <span aria-hidden="true">↗</span>
+                            <span>Zastosuj ustawienia komiksu</span>
                         </button>
-                        <p class="text-[9px] text-white/45 mt-1 text-center">Matematycznie usuwa szum z murów i generuje ostre plamy i drzazgi światła w czasie rzeczywistym.</p>
+                        <p class="text-[9px] text-white/45 mt-1 text-center">Ustawia mocniejsze wygładzanie, czerń i światła krawędziowe.</p>
                     </div>
                 </section>
 
@@ -220,45 +497,53 @@
                 <section class="glass-card rounded-2xl p-3.5 space-y-3">
                     <div class="flex items-center justify-between">
                         <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-amber-400"></span> 2. Paleta Plakatowa (5 Płyt)
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span> Palety kolorów
                         </h2>
                         <div class="flex items-center gap-1">
-                            <button id="swapMidHighBtn" title="Zamień miejscami Mgłę/Akcent i Niebo" class="glass-button px-2 py-1 rounded-lg text-[10px] text-white/90 flex items-center gap-1">
+                            <button id="swapMidHighBtn" title="Zamień kolory płyty akcentu i nieba" class="glass-button px-2 py-1 rounded-lg text-[10px] text-white/90 flex items-center gap-1">
                                 <span>⇄</span> Mgła/Niebo
                             </button>
-                            <button id="invertInkBtn" title="Odwróć cienie i światła" class="glass-button px-2 py-1 rounded-lg text-[10px] text-white/90">
+                            <button id="invertInkBtn" title="Zamień kolory tuszu i akcentu" class="glass-button px-2 py-1 rounded-lg text-[10px] text-white/90">
                                 Negatyw
                             </button>
                         </div>
                     </div>
 
-                    <!-- Preset Palettes Grid -->
-                    <div id="paletteGrid" class="grid grid-cols-2 gap-1.5"></div>
+                    <details id="paletteDisclosure" class="palette-disclosure">
+                        <summary>
+                            <span>Wybierz paletę</span>
+                            <span class="flex items-center gap-2">
+                                <span id="paletteCount" class="text-[10px] text-white/50">18 palet</span>
+                                <span class="palette-chevron" aria-hidden="true">⌄</span>
+                            </span>
+                        </summary>
+                        <div id="paletteGrid" class="grid grid-cols-2 gap-1.5"></div>
+                    </details>
 
                     <!-- Custom 5-Color Plate Pickers -->
                     <div class="pt-2 border-t border-white/10 grid grid-cols-5 gap-1.5">
                         <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
-                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Ciężki Tusz i Sylwetki Murów">1. Tusz</label>
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Najciemniejsza płyta — kontury i sylwetki">Tusz</label>
                             <input type="color" id="colorInk" value="#05070a">
                             <span id="hexInk" class="block text-[9px] font-mono text-center text-white/75 mt-1">#05070A</span>
                         </div>
                         <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
-                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Fałdy Płaszcza i Cienie">2. Płaszcz</label>
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Cienie pośrednie i fałdy">Cień</label>
                             <input type="color" id="colorSlate" value="#0b2229">
                             <span id="hexSlate" class="block text-[9px] font-mono text-center text-white/75 mt-1">#0B2229</span>
                         </div>
                         <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
-                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Mgła, Zamek i Drzazgi Światła na Murze">3. Mgła/Rim</label>
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Płyta akcentu i mgły">Akcent</label>
                             <input type="color" id="colorMid" value="#ff1e14">
                             <span id="hexMid" class="block text-[9px] font-mono text-center text-white/75 mt-1">#FF1E14</span>
                         </div>
                         <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
-                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Górna Atmosfera / Niebo">4. Niebo</label>
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Kolor strefy nieba">Niebo</label>
                             <input type="color" id="colorSky" value="#05889c">
                             <span id="hexSky" class="block text-[9px] font-mono text-center text-white/75 mt-1">#05889C</span>
                         </div>
                         <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
-                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Koszula, Ostrze, Klamra i Świecące Oczy">5. Błysk</label>
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Najjaśniejsza płyta — wybrane światła">Światło</label>
                             <input type="color" id="colorHigh" value="#d8e6eb">
                             <span id="hexHigh" class="block text-[9px] font-mono text-center text-white/75 mt-1">#D8E6EB</span>
                         </div>
@@ -268,106 +553,116 @@
                 <!-- 3. Architektura Silnika (Vector Cutout vs Woodcut) -->
                 <section class="glass-card rounded-2xl p-3.5 space-y-3">
                     <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> 3. Styl Ilustracji i Geometria Plam
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Styl ilustracji
                     </h2>
 
                     <div class="grid grid-cols-2 gap-1.5" id="engravingModeGroup">
                         <button data-mode="0" class="engrave-btn preset-active glass-button p-2 rounded-xl text-left">
-                            <div class="text-[11px] font-semibold text-white">⚡ Komiks Wektorowy</div>
-                            <div class="text-[9px] text-white/50">Płaski tusz Mignoli + drzazgi światła</div>
+                            <div class="text-[11px] font-semibold text-white">Komiks wektorowy</div>
+                            <div class="text-[9px] text-white/50">Kontury i osobne plamy tonalne</div>
                         </button>
                         <button data-mode="1" class="engrave-btn glass-button p-2 rounded-xl text-left">
-                            <div class="text-[11px] font-semibold text-white">🌇 Plakat Noir Split</div>
-                            <div class="text-[9px] text-white/50">Silny podział nieba + czyste bloki</div>
+                            <div class="text-[11px] font-semibold text-white">Plakat noir split</div>
+                            <div class="text-[9px] text-white/50">Duże sylwetki i poziomy podział barw</div>
                         </button>
                         <button data-mode="2" class="engrave-btn glass-button p-2 rounded-xl text-left">
-                            <div class="text-[11px] font-semibold text-white">🪵 Drzeworyt (LIC)</div>
-                            <div class="text-[9px] text-white/50">Rytownicze cięcia wzdłuż bryły</div>
+                            <div class="text-[11px] font-semibold text-white">Drzeworyt</div>
+                            <div class="text-[9px] text-white/50">Włókniste kreskowanie wzdłuż form</div>
                         </button>
                         <button data-mode="3" class="engrave-btn glass-button p-2 rounded-xl text-left">
-                            <div class="text-[11px] font-semibold text-white">✒️ Rycina Punktowa</div>
-                            <div class="text-[9px] text-white/50">Stippling i szorstki sitodruk</div>
+                            <div class="text-[11px] font-semibold text-white">Rycina punktowa</div>
+                            <div class="text-[9px] text-white/50">Regularny raster półtonowy</div>
                         </button>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-white/10 pt-2">
+                        <span class="text-[10px] text-white/50">Przywróć parametry bieżącego stylu, zachowując kolory.</span>
+                        <button id="resetStyleBtn" type="button" class="glass-button shrink-0 px-2.5 py-1.5 text-[10px] font-medium" title="Przywróć domyślne parametry aktywnego stylu">Resetuj styl</button>
                     </div>
 
                     <!-- Wygładzanie szumu kamieni do płaskich plam wektorowych -->
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Anihilacja drobnej tekstury (Płaskie plamy)</span>
+                            <span class="text-white/80">Wygładzanie faktury źródła</span>
                             <span id="valFlowLength" class="font-mono text-emerald-300">90%</span>
                         </div>
-                        <input type="range" id="paramFlowLength" min="0" max="100" step="1" value="90">
+                        <input type="range" id="paramFlowLength" aria-label="Wygładzanie faktury źródła" min="0" max="100" step="1" value="90">
+                        <p class="text-[9px] text-white/45">Więcej wygładzania upraszcza fakturę, zachowując większe formy.</p>
                     </div>
 
                     <!-- Ostre czerwone drzazgi światła na krawędziach murów (Rim-Light Shards) -->
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Drzazgi światła na murach (Rim-Light Shards)</span>
+                            <span class="text-white/80">Światła krawędziowe</span>
                             <span id="valCarveDepth" class="font-mono text-emerald-300">82%</span>
                         </div>
-                        <input type="range" id="paramCarveDepth" min="0" max="100" step="1" value="82">
+                        <input type="range" id="paramCarveDepth" aria-label="Intensywność świateł krawędziowych" min="0" max="100" step="1" value="82">
+                        <p class="text-[9px] text-white/45">Wzmacnia ostre akcenty przy kontrastowych krawędziach.</p>
                     </div>
 
                     <!-- Podział atmosferyczny nieba (Turkusowa góra vs Czerwona mgła) -->
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Ciemne kłęby chmur (niebo i mgła)</span>
+                            <span class="text-white/80">Podział nieba i kłęby chmur</span>
                             <span id="valSkySplit" class="font-mono text-emerald-300">68%</span>
                         </div>
-                        <input type="range" id="paramSkySplit" min="0" max="100" step="1" value="68">
+                        <input type="range" id="paramSkySplit" aria-label="Podział nieba i kłęby chmur" min="0" max="100" step="1" value="68">
+                        <p class="text-[9px] text-white/45">W trybie AI reguluje gęstość chmur; bez segmentacji przesuwa granicę nieba.</p>
                     </div>
                 </section>
 
                 <!-- 4. Czarny Tusz, Kontury i Błyski (Oczy / Koszula / Ostrze) -->
                 <section class="glass-card rounded-2xl p-3.5 space-y-3">
                     <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-sky-400"></span> 4. Ciężki Tusz i Błyski (Oczy / Stal)
+                        <span class="w-2 h-2 rounded-full bg-sky-400"></span> Tusz i światła
                     </h2>
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Zasięg czerni na murach (jasne partie → czerwień)</span>
+                            <span class="text-white/80">Siła czerni i konturów</span>
                             <span id="valInkWeight" class="font-mono text-sky-300">86%</span>
                         </div>
-                        <input type="range" id="paramInkWeight" min="0" max="100" step="1" value="86">
+                        <input type="range" id="paramInkWeight" aria-label="Siła czerni i konturów" min="0" max="100" step="1" value="86">
                     </div>
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Grubość komiksowego konturu tuszu</span>
-                            <span id="valLineThickness" class="font-mono text-sky-300">1.5 px</span>
+                            <span class="text-white/80">Skala grubości konturu</span>
+                            <span id="valLineThickness" class="font-mono text-sky-300">1.5×</span>
                         </div>
-                        <input type="range" id="paramLineThickness" min="0.4" max="3.5" step="0.1" value="1.5">
+                        <input type="range" id="paramLineThickness" aria-label="Skala grubości konturu" min="0.4" max="3.5" step="0.1" value="1.5">
                     </div>
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Punktowe błyski (oczy, nóż, klamra)</span>
+                            <span class="text-white/80">Ochrona drobnych świateł</span>
                             <span id="valSpecularPop" class="font-mono text-sky-300">88%</span>
                         </div>
-                        <input type="range" id="paramSpecularPop" min="0" max="100" step="1" value="88">
+                        <input type="range" id="paramSpecularPop" aria-label="Ochrona drobnych świateł" min="0" max="100" step="1" value="88">
+                        <p class="text-[9px] text-white/45">Zachowuje małe, jasne detale, np. oczy i metalowe krawędzie.</p>
                     </div>
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Poszarpanie / Ryt (0% = Czysty Wektor)</span>
+                            <span class="text-white/80">Nieregularność kreski i rycia</span>
                             <span id="valRaggedness" class="font-mono text-sky-300">12%</span>
                         </div>
-                        <input type="range" id="paramRaggedness" min="0" max="100" step="1" value="12">
+                        <input type="range" id="paramRaggedness" aria-label="Nieregularność kreski i rycia" min="0" max="100" step="1" value="12">
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Głębia AI (plany atmosferyczne)</span>
+                            <span class="text-white/80">Wpływ mapy głębi</span>
                             <span id="valDepth" class="font-mono text-sky-300">70%</span>
                         </div>
-                        <input type="range" id="paramDepth" min="0" max="100" step="1" value="70">
+                        <input type="range" id="paramDepth" aria-label="Wpływ mapy głębi" min="0" max="100" step="1" value="70">
+                        <p id="depthHelp" class="text-[9px] text-white/45">Steruje rozjaśnianiem odległego tła; aktywny po obliczeniu głębi AI.</p>
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Gładkość kształtów (wektor)</span>
+                            <span class="text-white/80">Wygładzanie granic plam</span>
                             <span id="valShapeSmooth" class="font-mono text-sky-300">60%</span>
                         </div>
-                        <input type="range" id="paramShapeSmooth" min="0" max="100" step="1" value="60">
+                        <input type="range" id="paramShapeSmooth" aria-label="Wygładzanie granic plam" min="0" max="100" step="1" value="60">
+                        <p id="shapeSmoothHelp" class="text-[9px] text-white/45">Wygładza granice kolorowych obszarów w trybach komiksowych.</p>
                     </div>
                 </section>
 
@@ -375,33 +670,33 @@
                 <section class="glass-card rounded-2xl p-3.5 space-y-3">
                     <div class="flex items-center justify-between">
                         <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-purple-400"></span> 5. Balans Płyt (Czerń / Płaszcz / Mgła)
+                            <span class="w-2 h-2 rounded-full bg-purple-400"></span> Ton i kontrast
                         </h2>
-                        <button id="resetParamsBtn" class="text-[10px] text-white/50 hover:text-white underline">Resetuj</button>
+                        <button id="resetParamsBtn" type="button" class="glass-button px-2.5 py-1.5 text-[10px] font-medium">Resetuj do domyślnych</button>
                     </div>
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Separacja fałd płaszcza (Płyta 2 Łupek)</span>
+                            <span class="text-white/80">Separacja ciemnych tonów</span>
                             <span id="valShadowDetail" class="font-mono text-purple-300">74%</span>
                         </div>
-                        <input type="range" id="paramShadowDetail" min="0" max="100" step="1" value="74">
+                        <input type="range" id="paramShadowDetail" aria-label="Separacja ciemnych tonów" min="0" max="100" step="1" value="74">
                     </div>
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Próg Czystej Czerni (Sylwetki ścian)</span>
+                            <span class="text-white/80">Próg czerni</span>
                             <span id="valShadowCutoff" class="font-mono text-purple-300">0.34</span>
                         </div>
-                        <input type="range" id="paramShadowCutoff" min="0.08" max="0.70" step="0.01" value="0.34">
+                        <input type="range" id="paramShadowCutoff" aria-label="Próg czerni" min="0.08" max="0.70" step="0.01" value="0.34">
                     </div>
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Próg Mgły i Światła (Zamek / Tło)</span>
+                            <span class="text-white/80">Próg jasnych płyt</span>
                             <span id="valHighCutoff" class="font-mono text-purple-300">0.54</span>
                         </div>
-                        <input type="range" id="paramHighCutoff" min="0.25" max="0.92" step="0.01" value="0.54">
+                        <input type="range" id="paramHighCutoff" aria-label="Próg jasnych płyt" min="0.25" max="0.92" step="0.01" value="0.54">
                     </div>
 
                     <div class="flex items-center justify-between pt-2 border-t border-white/10">
@@ -425,14 +720,51 @@
                             <div class="w-9 h-5 bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
                         </label>
                     </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs text-white/80">Model analizy</span>
+                        <select id="segModel" class="bg-white/10 text-xs text-white/90 rounded-lg px-2 py-1 border border-white/15">
+                            <option value="Xenova/segformer-b2-finetuned-ade-512-512" data-mb="29" data-name="B2" class="text-black">B2 · 29 MB (szybki)</option>
+                            <option value="Xenova/segformer-b3-finetuned-ade-512-512" data-mb="50" data-name="B3" class="text-black">B3 · 50 MB</option>
+                            <option value="Xenova/segformer-b5-finetuned-ade-640-640" data-mb="90" data-name="B5" class="text-black">B5 · 90 MB (najlepszy)</option>
+                        </select>
+                    </div>
                     <p id="segStatus" class="text-[10px] text-white/50 leading-snug">Model uruchomi się po wczytaniu obrazu.</p>
                     <div id="segList" class="space-y-1.5"></div>
                     <button id="segBtn" class="glass-button w-full py-2 px-3 rounded-xl text-xs font-semibold text-white/90">Wykryj elementy ponownie</button>
                 </section>
+                <section class="glass-card rounded-2xl p-3.5 space-y-3">
+                    <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-400"></span> Faktura druku
+                    </h2>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Raster półtonowy</span>
+                            <span id="valScreenToneAmount" class="font-mono text-amber-300">0%</span>
+                        </div>
+                        <input type="range" id="paramScreenToneAmount" aria-label="Raster półtonowy" min="0" max="100" step="1" value="0">
+                        <p class="text-[9px] text-white/45">Dodaje regulowane, okrągłe punkty tuszu we wszystkich stylach. 0% wyłącza raster.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Rozbryzg tuszu</span>
+                            <span id="valInkSplatter" class="font-mono text-amber-300">0%</span>
+                        </div>
+                        <input type="range" id="paramInkSplatter" aria-label="Rozbryzg tuszu" min="0" max="100" step="1" value="0">
+                        <p class="text-[9px] text-white/45">Nieregularne plamki tuszu o zmiennej wielkości; działa niezależnie od rastra i ziarna.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Ziarno papieru</span>
+                            <span id="valGrainAmount" class="font-mono text-amber-300">12%</span>
+                        </div>
+                        <input type="range" id="paramGrainAmount" aria-label="Ziarno papieru" min="0" max="100" step="1" value="12">
+                        <p class="text-[9px] text-white/45">Dodaje drobną, monochromatyczną fakturę do każdego stylu. 0% wyłącza efekt.</p>
+                    </div>
+                </section>
                 <!-- 6. Eksport w Pełnej Rozdzielczości -->
                 <section class="glass-card rounded-2xl p-3.5 space-y-3 border-rose-500/30">
                     <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> 6. Eksport Pełnej Jakości (1:1)
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> Eksport
                     </h2>
 
                     <div class="space-y-2.5">
@@ -445,7 +777,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-[11px] text-white/70 mb-1">Skala eksportu (względem obrazu źródłowego)</label>
+                            <label class="block text-[11px] text-white/70 mb-1">Rozmiar względem oryginału</label>
                             <select id="exportScale" class="w-full bg-black/60 border border-white/20 rounded-xl p-2 text-xs text-white font-medium focus:outline-none focus:border-rose-400">
                                 <option value="0">1:1 — oryginalna rozdzielczość</option>
                                 <option value="2">2× — powiększenie</option>
@@ -496,6 +828,11 @@
                         <span id="splitVal" class="text-[10px] font-mono text-white/80 w-7">0%</span>
                     </div>
 
+                    <div class="flex items-center gap-1">
+                        <button id="undoBtn" type="button" title="Cofnij (Ctrl+Z)" aria-label="Cofnij" disabled class="glass-button px-2 h-7 rounded-full text-[11px] disabled:opacity-40">↶ Cofnij</button>
+                        <button id="redoBtn" type="button" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów" disabled class="glass-button px-2 h-7 rounded-full text-[11px] disabled:opacity-40">↷</button>
+                    </div>
+
                     <div class="glass-card px-1.5 py-1 rounded-full flex items-center gap-1">
                         <button id="zoomOutBtn" title="Oddal" class="glass-button w-6 h-6 rounded-full text-xs flex items-center justify-center">-</button>
                         <span id="zoomLabel" class="text-[11px] font-mono px-1.5 text-white/85">100%</span>
@@ -507,9 +844,24 @@
 
             <!-- Interactive Canvas Viewport -->
             <div id="viewportContainer" class="w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing relative">
+                <div id="emptyState">
+                    <div class="empty-state-card">
+                        <div class="text-2xl text-white/60 mb-2" aria-hidden="true">▧</div>
+                        <h2 class="text-sm font-semibold text-white/85">Otwórz zdjęcie, aby rozpocząć</h2>
+                        <p class="text-xs text-white/50 mt-2">Wybierz zdjęcie z panelu po lewej albo otwórz je bezpośrednio tutaj.</p>
+                        <button id="emptyStateOpenBtn" type="button" class="glass-button mt-4 px-4 py-2 rounded-lg text-xs font-medium text-white">Wybierz zdjęcie</button>
+                    </div>
+                </div>
                 <div id="canvasTransformWrapper" class="relative flex items-center justify-center transition-transform duration-75 ease-out" style="transform-origin: center center;">
                     <canvas id="glCanvas" class="max-w-[92vw] lg:max-w-[calc(100vw-520px)] max-h-[40vh] lg:max-h-[86vh] object-contain rounded-lg shadow-[0_25px_80px_rgba(0,0,0,0.95)] border border-white/15"></canvas>
                 </div>
+            </div>
+            <div id="processingIndicator" role="status" aria-live="polite" hidden>
+                <div class="flex items-center justify-between gap-3">
+                    <span id="processingLabel" class="text-[11px]">Przygotowuję podgląd…</span>
+                    <span id="processingPercent" class="text-[10px] font-mono text-white/60"></span>
+                </div>
+                <div class="progress-track"><div id="processingProgress"></div></div>
             </div>
 
             <!-- Bottom Helper Hint -->
@@ -959,13 +1311,8 @@
             float grainMod = 0.0;
             if (u_engraveMode == 2) {
                 grainMod = (texField - 0.5) * (0.25 + u_raggedness * 0.45);
-            } else if (u_engraveMode == 3) {
-                // Regular 45-degree halftone screen: dots grow where the tone approaches a plate border
-                vec2 hq = mat2(0.7071, -0.7071, 0.7071, 0.7071) * metricUV * 140.0;
-                float dotp = 0.25 * (cos(hq.x * 6.2832) + cos(hq.y * 6.2832));
-                grainMod = dotp * (0.45 + u_raggedness * 0.5);
             } else {
-                // Modes 0 & 1: Clean Vector Cutout (zero cheap noise when raggedness is low!)
+                // Organic edge modulation remains separate from the final paper grain and halftone.
                 grainMod = (fbm(metricUV * 38.0) - 0.5) * (u_raggedness * 0.18);
             }
 
@@ -1068,6 +1415,19 @@
                 comp = mix(comp, u_colorMid, shardTrigger * (1.0 - personW) * (1.0 - fSky));
             }
 
+            // Noir Split uses broad, hard-edged horizontal color fields on the outer scene,
+            // while preserving the central subject and its already-composited tonal detail.
+            if (u_engraveMode == 1) {
+                float splitHorizon = 1.0 - u_skySplit * 0.58;
+                float upperPanel = step(splitHorizon, v_uv.y);
+                float panelTone = smoothstep(blackCrushThresh, hiThr, sculptedLuma);
+                vec3 panelColor = mix(u_colorMid, u_colorSky, upperPanel);
+                vec3 panel = mix(u_colorInk, panelColor, panelTone);
+                float subjectKeep = clamp(personW + fHigh * 0.7 + fSlate * 0.35, 0.0, 1.0);
+                float sidePanel = smoothstep(0.20, 0.43, abs(v_uv.x - 0.5)) * (1.0 - subjectKeep);
+                comp = mix(comp, panel, sidePanel);
+            }
+
             // --- PLATE 5: PINPOINT SPECULAR HIGHLIGHTS (Glowing Eyes, White Shirt, Knife Blade, Belt Buckle) ---
             // Specifically targets high-contrast focal highlights in the central figure region
             float centerFocus = 1.0 - smoothstep(0.18, 0.42, abs(v_uv.x - 0.5));
@@ -1102,6 +1462,26 @@
         uniform vec3 u_pal[7];
         uniform int u_showFrame;
         uniform float u_splitRatio;
+        uniform float u_screenToneAmount;
+        uniform float u_inkSplatter;
+        uniform float u_grainAmount;
+
+        float hash21(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        float valueNoise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+                mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),
+                mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x),
+                u.y
+            );
+        }
 
         int nearestPlate(vec3 c) {
             int best = 0; float bd = 1e9;
@@ -1149,6 +1529,22 @@
                 float splitLine = smoothstep(0.0025, 0.0, abs(v_uv.x - u_splitRatio));
                 comp = mix(comp, vec3(1.0, 0.15, 0.15), splitLine);
             }
+            vec2 metricUV = vec2(v_uv.x * aspect, v_uv.y);
+            vec2 screenUV = mat2(0.7071, -0.7071, 0.7071, 0.7071) * metricUV * u_resolution.y * 0.075;
+            float screenCell = 0.5 + 0.5 * cos(screenUV.x * 6.2832) * cos(screenUV.y * 6.2832);
+            float tone = dot(comp, vec3(0.2126, 0.7152, 0.0722));
+            float dotThreshold = mix(0.94, 0.05, tone);
+            float screenDot = smoothstep(dotThreshold - 0.06, dotThreshold + 0.06, screenCell);
+            comp = mix(comp, u_pal[0], screenDot * (u_screenToneAmount / 100.0) * 0.85);
+            if (u_inkSplatter > 0.01) {
+                float smallSplatter = valueNoise(metricUV * u_resolution.y * 0.16 + vec2(17.2, 4.8));
+                float largeSplatter = valueNoise(metricUV * u_resolution.y * 0.045 + vec2(31.7, 9.3));
+                float droplets = smoothstep(0.72, 0.91, smallSplatter) * smoothstep(0.32, 0.62, largeSplatter);
+                float paperExposure = smoothstep(0.08, 0.72, tone);
+                comp = mix(comp, u_pal[0], droplets * paperExposure * (u_inkSplatter / 100.0) * 0.92);
+            }
+            float paperNoise = valueNoise(metricUV * u_resolution.y * 0.55 + vec2(3.1, 7.7)) - 0.5;
+            comp *= 1.0 + paperNoise * (u_grainAmount / 100.0) * 0.36;
             outColor = vec4(clamp(comp, 0.0, 1.0), 1.0);
         }
     </script>
@@ -1156,7 +1552,32 @@
          APPLICATION CONTROLLER, AI SEMANTIC RESTYLE & PROCEDURAL GUARDIAN SCENE
          ============================================================================ -->
     <script>
-        // 1. 5-Plate Graphic Novel & Screenprint Palettes (Default #1 = Exact Before/After Guardian Palette)
+        function palettePreset(engraveMode, grainAmount, overrides = {}) {
+            const textured = engraveMode === 2 || engraveMode === 3;
+            return {
+                engraveMode,
+                flowLength: textured ? 80 : 91,
+                carveDepth: engraveMode === 0 ? 82 : (engraveMode === 1 ? 64 : 48),
+                skySplit: 62,
+                inkWeight: 86,
+                lineThickness: 1.5,
+                specularPop: 82,
+                raggedness: engraveMode === 2 ? 56 : (engraveMode === 3 ? 42 : 14),
+                screenToneAmount: engraveMode === 3 ? 68 : 0,
+                inkSplatter: engraveMode === 2 ? 12 : (engraveMode === 3 ? 6 : 0),
+                inkSplatterAmount: engraveMode === 2 ? 12 : (engraveMode === 3 ? 6 : 0),
+                grainAmount,
+                shapeSmooth: textured ? 0 : 58,
+                depthAmt: 65,
+                shadowDetail: 74,
+                shadowCutoff: 0.36,
+                highCutoff: 0.60,
+                showFrame: engraveMode === 2,
+                ...overrides
+            };
+        }
+
+        // Five-plate palettes with presets tuned for the palette's intended print treatment.
         const PRINTONE_PALETTES = [
             {
                 id: 'crimson_alley',
@@ -1170,7 +1591,7 @@
                 preset: {
                     engraveMode: 0, flowLength: 92, carveDepth: 84, skySplit: 68,
                     inkWeight: 88, lineThickness: 1.5, specularPop: 90, raggedness: 8,
-                    shadowDetail: 76, shadowCutoff: 0.34, highCutoff: 0.54, showFrame: false
+                    shadowDetail: 76, shadowCutoff: 0.34, highCutoff: 0.54, showFrame: false, grainAmount: 12, shapeSmooth: 60, screenToneAmount: 0, inkSplatter: 0
                 }
             },
             {
@@ -1185,7 +1606,7 @@
                 preset: {
                     engraveMode: 2, flowLength: 80, carveDepth: 74, skySplit: 0,
                     inkWeight: 86, lineThickness: 1.5, specularPop: 65, raggedness: 64,
-                    shadowDetail: 72, shadowCutoff: 0.38, highCutoff: 0.64, showFrame: true
+                    shadowDetail: 72, shadowCutoff: 0.38, highCutoff: 0.64, showFrame: true, grainAmount: 24, shapeSmooth: 0, screenToneAmount: 0, inkSplatter: 12
                 }
             },
             {
@@ -1200,7 +1621,7 @@
                 preset: {
                     engraveMode: 2, flowLength: 82, carveDepth: 78, skySplit: 25,
                     inkWeight: 88, lineThickness: 1.4, specularPop: 82, raggedness: 58,
-                    shadowDetail: 75, shadowCutoff: 0.39, highCutoff: 0.66, showFrame: true
+                    shadowDetail: 75, shadowCutoff: 0.39, highCutoff: 0.66, showFrame: true, grainAmount: 28, shapeSmooth: 0, screenToneAmount: 0, inkSplatter: 12
                 }
             },
             {
@@ -1215,7 +1636,7 @@
                 preset: {
                     engraveMode: 0, flowLength: 88, carveDepth: 76, skySplit: 0,
                     inkWeight: 85, lineThickness: 1.7, specularPop: 85, raggedness: 22,
-                    shadowDetail: 70, shadowCutoff: 0.36, highCutoff: 0.62, showFrame: false
+                    shadowDetail: 70, shadowCutoff: 0.36, highCutoff: 0.62, showFrame: false, grainAmount: 12, shapeSmooth: 58, screenToneAmount: 0, inkSplatter: 0
                 }
             },
             {
@@ -1230,7 +1651,7 @@
                 preset: {
                     engraveMode: 3, flowLength: 74, carveDepth: 72, skySplit: 55,
                     inkWeight: 86, lineThickness: 1.5, specularPop: 80, raggedness: 68,
-                    shadowDetail: 70, shadowCutoff: 0.37, highCutoff: 0.65, showFrame: false
+                    shadowDetail: 70, shadowCutoff: 0.37, highCutoff: 0.65, showFrame: false, grainAmount: 18, shapeSmooth: 0, screenToneAmount: 74, inkSplatter: 6
                 }
             },
             {
@@ -1245,9 +1666,100 @@
                 preset: {
                     engraveMode: 0, flowLength: 94, carveDepth: 85, skySplit: 60,
                     inkWeight: 90, lineThickness: 1.6, specularPop: 90, raggedness: 5,
-                    shadowDetail: 78, shadowCutoff: 0.35, highCutoff: 0.56, showFrame: false
+                        shadowDetail: 78, shadowCutoff: 0.35, highCutoff: 0.56, showFrame: false, grainAmount: 8, shapeSmooth: 60, screenToneAmount: 0, inkSplatter: 0
+                    }
+                },
+                {
+                    id: 'copper_night',
+                    name: 'Copper Night',
+                    subtitle: 'Noir split · miedź i atrament',
+                    ink: '#101318', slate: '#2a2527', mid: '#bd583e', sky: '#527b82', high: '#f0d7b5',
+                    preset: palettePreset(1, 16, { skySplit: 66, shadowCutoff: 0.38, highCutoff: 0.62, showFrame: true })
+                },
+                {
+                    id: 'petrol_coral',
+                    name: 'Petrol & Coral',
+                    subtitle: 'Komiks · morski turkus i koral',
+                    ink: '#10191b', slate: '#254044', mid: '#ed735c', sky: '#187e83', high: '#f5e4cc',
+                    preset: palettePreset(0, 10, { skySplit: 64, carveDepth: 82, showFrame: false })
+                },
+                {
+                    id: 'boneprint',
+                    name: 'Boneprint',
+                    subtitle: 'Drzeworyt · kość i sadza',
+                    ink: '#171512', slate: '#474038', mid: '#a27a55', sky: '#c4b397', high: '#f1e7d4',
+                    preset: palettePreset(2, 30, { raggedness: 68, carveDepth: 34, showFrame: true })
+                },
+                {
+                    id: 'midnight_bloom',
+                    name: 'Midnight Bloom',
+                    subtitle: 'Półton · śliwka i magneta',
+                    ink: '#17131d', slate: '#393042', mid: '#925278', sky: '#e080a5', high: '#f5c9d6',
+                    preset: palettePreset(3, 16, { raggedness: 62, skySplit: 58, showFrame: false })
+                },
+                {
+                    id: 'alpine_cyan',
+                    name: 'Alpine Cyan',
+                    subtitle: 'Noir split · lodowy błękit',
+                    ink: '#101720', slate: '#283a48', mid: '#b55c4d', sky: '#4b9db1', high: '#d8e9e9',
+                    preset: palettePreset(1, 12, { skySplit: 58, shadowCutoff: 0.34, showFrame: false })
+                },
+                {
+                    id: 'saffron_archive',
+                    name: 'Saffron Archive',
+                    subtitle: 'Drzeworyt · ochra i papier',
+                    ink: '#20170f', slate: '#49351f', mid: '#a7482c', sky: '#cf8c36', high: '#f4dfaa',
+                    preset: palettePreset(2, 26, { raggedness: 58, carveDepth: 42, showFrame: true })
+                },
+                {
+                    id: 'oxide_paper',
+                    name: 'Oxide & Paper',
+                    subtitle: 'Komiks · rdza, granat i papier',
+                    ink: '#17191d', slate: '#343a43', mid: '#b54835', sky: '#486f83', high: '#e8d8bd',
+                    preset: palettePreset(0, 14, { skySplit: 62, shadowDetail: 78, showFrame: false })
+                },
+                {
+                    id: 'ultraviolet',
+                    name: 'Ultraviolet',
+                    subtitle: 'Półton · indygo i cytryna',
+                    ink: '#15151e', slate: '#30344c', mid: '#7257a3', sky: '#c17ba6', high: '#f0d873',
+                    preset: palettePreset(3, 20, { raggedness: 48, skySplit: 56, showFrame: false })
+                },
+                {
+                    id: 'pine_ink',
+                    name: 'Pine Ink',
+                    subtitle: 'Komiks · sosna i ciepła kość',
+                    ink: '#121a17', slate: '#263b32', mid: '#8b5638', sky: '#58826c', high: '#e9dfc5',
+                    preset: palettePreset(0, 18, { skySplit: 68, shadowCutoff: 0.37, showFrame: false })
+                },
+                {
+                    id: 'dust_cobalt',
+                    name: 'Dust & Cobalt',
+                    subtitle: 'Noir split · pył i kobalt',
+                    ink: '#11151b', slate: '#303640', mid: '#bd6547', sky: '#426fa5', high: '#e7d3b2',
+                    preset: palettePreset(1, 14, { skySplit: 70, highCutoff: 0.58, showFrame: true })
+                },
+                {
+                    id: 'crimson_bone',
+                    name: 'Crimson Bone',
+                    subtitle: 'Drzeworyt · czerwień i kość',
+                    ink: '#1b1415', slate: '#493035', mid: '#b7353b', sky: '#9a6f69', high: '#f0dfc9',
+                    preset: palettePreset(2, 34, { raggedness: 64, carveDepth: 38, showFrame: true })
+                },
+                {
+                    id: 'neon_abyss',
+                    name: 'Neon Abyss',
+                    subtitle: 'Komiks · elektryczny błękit',
+                    ink: '#10131b', slate: '#252d45', mid: '#d64b57', sky: '#317fd0', high: '#a9eff0',
+                    preset: palettePreset(0, 8, { skySplit: 60, carveDepth: 88, highCutoff: 0.57, showFrame: false })
                 }
-            }
+        ];
+
+        const STYLE_DEFAULTS = [
+                palettePreset(0, 12, { flowLength: 92, carveDepth: 82, inkWeight: 88, raggedness: 12, shapeSmooth: 60, showFrame: false }),
+                palettePreset(1, 16, { flowLength: 88, carveDepth: 58, skySplit: 64, inkWeight: 90, raggedness: 16, shapeSmooth: 50, showFrame: true }),
+                palettePreset(2, 26, { flowLength: 80, carveDepth: 42, raggedness: 60, shapeSmooth: 0, showFrame: true }),
+                palettePreset(3, 18, { flowLength: 76, carveDepth: 36, raggedness: 54, shapeSmooth: 0, showFrame: false })
         ];
 
         // Engine State
@@ -1265,7 +1777,7 @@
             inkWeight: 88,
             lineThickness: 1.5,
             specularPop: 90,
-            raggedness: 8, shapeSmooth: 60, depthAmt: 70,
+            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70,
             shadowDetail: 76,
             shadowCutoff: 0.34,
             highCutoff: 0.54,
@@ -1544,6 +2056,7 @@
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_inkWeight'), state.inkWeight / 100.0);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_specularPop'), state.specularPop / 100.0);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_raggedness'), state.raggedness / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_grainAmount'), state.grainAmount);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_shadowDetail'), state.shadowDetail);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_shadowCutoff'), state.shadowCutoff);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_highCutoff'), state.highCutoff);
@@ -1575,6 +2088,9 @@
             gl.uniform3fv(gl.getUniformLocation(progPass5, 'u_pal'), new Float32Array(pal.flat()));
             gl.uniform1i(gl.getUniformLocation(progPass5, 'u_showFrame'), state.showFrame ? 1 : 0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_splitRatio'), state.splitRatio);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_screenToneAmount'), state.screenToneAmount);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_inkSplatter'), state.inkSplatter);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_grainAmount'), state.grainAmount);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
         }
 
@@ -1582,7 +2098,7 @@
         // AI SEGMENTATION (SegFormer / ADE20K, runs fully in the browser via transformers.js)
         // Detects sky, person, walls, buildings, water/fog... and feeds soft masks to the compositor.
         // ============================================================================
-        const SEG = { enabled: true, busy: false, ready: false, items: [], tex0: null, tex1: null, lib: null, pipe: null, token: 0 };
+        const SEG = { enabled: true, busy: false, ready: false, items: [], pendingPlates: null, tex0: null, tex1: null, lib: null, pipe: null, token: 0 };
         const SEG_PL = { auto: -1, ink: 0, slate: 1, mid: 2, sky: 3, high: 4, dark: 5 };
         const SEG_PL_NAMES = [['auto', 'Auto (tonalnie)'], ['ink', 'Tusz (czerń)'], ['slate', 'Łupek'], ['mid', 'Czerwień / mgła'], ['sky', 'Niebo'], ['high', 'Światło'], ['dark', 'Ciemna czerwień (sylwetka)']];
         const SEG_PL_BY_INDEX = { '-1': 'auto', 0: 'ink', 1: 'slate', 2: 'mid', 3: 'sky', 4: 'high', 5: 'dark' };
@@ -1600,6 +2116,33 @@
         function setSegStatus(text) {
             const el = document.getElementById('segStatus');
             if (el) el.textContent = text;
+        }
+
+        function setProcessingStatus(text, percent = null, visible = true) {
+            const box = document.getElementById('processingIndicator');
+            const label = document.getElementById('processingLabel');
+            const value = document.getElementById('processingPercent');
+            const bar = document.getElementById('processingProgress');
+            if (!box || !label || !value || !bar) return;
+            box.hidden = !visible;
+            label.textContent = text;
+            const knownProgress = Number.isFinite(percent);
+            value.textContent = knownProgress ? `${Math.round(Math.max(0, Math.min(100, percent)))}%` : 'w toku';
+            bar.classList.toggle('indeterminate', !knownProgress);
+            bar.style.width = knownProgress ? `${Math.max(0, Math.min(100, percent))}%` : '';
+        }
+
+        function modelProgress(stage) {
+            return (event) => {
+                if (!event || typeof event !== 'object') return;
+                let progress = Number.isFinite(event.progress) ? event.progress : null;
+                if (progress === null && Number.isFinite(event.loaded) && Number.isFinite(event.total) && event.total > 0) {
+                    progress = (event.loaded / event.total) * 100;
+                }
+                if (progress !== null && progress <= 1) progress *= 100;
+                const file = typeof event.file === 'string' ? event.file.split(/[\\/]/).pop() : '';
+                setProcessingStatus(file ? `${stage}: ${file}` : `${stage}…`, progress);
+            };
         }
 
         function renderSegList() {
@@ -1677,10 +2220,13 @@
             try {
                 if (!DEPTH.pipe) {
                     setSegStatus('Pobieram model głębi (jednorazowo, ok. 25 MB)…');
-                    DEPTH.pipe = await SEG.lib.pipeline('depth-estimation', 'Xenova/depth-anything-small-hf');
+                    DEPTH.pipe = await SEG.lib.pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
+                        progress_callback: modelProgress('Pobieranie modelu głębi')
+                    });
                 }
                 if (token !== SEG.token) return;
                 setSegStatus('Szacuję głębię sceny…');
+                setProcessingStatus('Szacuję głębię sceny…');
                 const iw = sourceImage.naturalWidth || sourceImage.width, ih = sourceImage.naturalHeight || sourceImage.height;
                 const r = Math.min(1, 640 / Math.max(iw, ih));
                 const c = document.createElement('canvas');
@@ -1705,26 +2251,84 @@
                 gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
                 DEPTH.ready = true;
                 execute4PassPipeline();
+                syncSlidersUI();
             } catch (err) {
                 console.error('Depth failed:', err);
-                DEPTH.ready = false;
+                if (token === SEG.token) {
+                    DEPTH.ready = false;
+                    setProcessingStatus('Podgląd gotowy; mapa głębi niedostępna.', null);
+                    setTimeout(() => {
+                        if (token === SEG.token) setProcessingStatus('', null, false);
+                    }, 5000);
+                }
             }
         }
 
+        // Runs SegFormer-B2 in a worker so heavy inference never freezes the editor UI.
+        function createSegWorker(modelId, onProgress) {
+            const src = `
+                import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+                let pipe = null;
+                self.onmessage = async (e) => {
+                    const { id, image } = e.data;
+                    try {
+                        if (!pipe) {
+                            pipe = await pipeline('image-segmentation', ${JSON.stringify(modelId)}, {
+                                progress_callback: (p) => self.postMessage({ progress: p })
+                            });
+                        }
+                        const out = await pipe(image);
+                        const items = out.map(o => ({ label: o.label, width: o.mask.width, height: o.mask.height, data: new Uint8Array(o.mask.data) }));
+                        self.postMessage({ id, items }, items.map(i => i.data.buffer));
+                    } catch (err) {
+                        self.postMessage({ id, error: String(err && err.message || err) });
+                    }
+                };`;
+            const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+            const worker = new Worker(url, { type: 'module' });
+            SEG.worker = worker;
+            const pending = new Map();
+            let nextId = 1;
+            worker.onmessage = (e) => {
+                if (e.data.progress) { if (onProgress) onProgress(e.data.progress); return; }
+                const job = pending.get(e.data.id);
+                if (!job) return;
+                pending.delete(e.data.id);
+                if (e.data.error) job.reject(new Error(e.data.error));
+                else job.resolve(e.data.items.map(i => ({ label: i.label, mask: { width: i.width, height: i.height, data: i.data } })));
+            };
+            worker.onerror = (e) => {
+                pending.forEach(job => job.reject(new Error(e.message || 'Worker error')));
+                pending.clear();
+                SEG.pipe = null;
+                worker.terminate();
+            };
+            return (image) => new Promise((resolve, reject) => {
+                const id = nextId++;
+                pending.set(id, { resolve, reject });
+                worker.postMessage({ id, image });
+            });
+        }
+
         async function runSegmentation() {
-            if (!SEG.enabled || !isImageLoaded) return;
+            if (!SEG.enabled || !isImageLoaded || SEG.busy) return;
             const token = ++SEG.token;
             SEG.busy = true;
             const btn = document.getElementById('segBtn');
             if (btn) btn.disabled = true;
+            const modelSelBusy = document.getElementById('segModel');
+            if (modelSelBusy) modelSelBusy.disabled = true;
             try {
+                if (!SEG.lib) SEG.lib = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
                 if (!SEG.pipe) {
-                    setSegStatus('Pobieram model AI (jednorazowo, ok. 15 MB)…');
-                    SEG.lib = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
-                    SEG.pipe = await SEG.lib.pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512');
+                    const sel = document.getElementById('segModel');
+                    const opt = sel.options[sel.selectedIndex];
+                    setSegStatus(`Pobieram model AI SegFormer-${opt.dataset.name} (jednorazowo, ok. ${opt.dataset.mb} MB)…`);
+                    SEG.pipe = createSegWorker(sel.value, modelProgress('Pobieranie modelu segmentacji'));
                 }
                 if (token !== SEG.token) return;
                 setSegStatus('Analizuję obraz…');
+                setProcessingStatus('Analizuję elementy obrazu…');
                 const iw = sourceImage.naturalWidth || sourceImage.width;
                 const ih = sourceImage.naturalHeight || sourceImage.height;
                 const r = Math.min(1, 640 / Math.max(iw, ih));
@@ -1773,23 +2377,45 @@
                     // Forcing a plate only where it matches the region's tone avoids wiping out bright or dark areas of other photos
                     if (key === 'ink' && mean > 0.38) key = 'auto';
                     if ((key === 'mid' || key === 'dark') && mean < 0.25) key = 'auto';
-                    return { label: s.label, frac: s.frac, plate: SEG_PL[key] };
+                    const plate = SEG.pendingPlates && Object.prototype.hasOwnProperty.call(SEG.pendingPlates, s.label)
+                        ? SEG.pendingPlates[s.label]
+                        : SEG_PL[key];
+                    return { label: s.label, frac: s.frac, plate };
                 });
+                SEG.pendingPlates = null;
                 SEG.ready = true;
                 renderSegList();
                 setSegStatus(`Wykryto ${SEG.items.length} elementów — przypisz im płyty koloru`);
                 execute4PassPipeline();
                 await runDepth(token);
                 if (DEPTH.ready) setSegStatus(`Wykryto ${SEG.items.length} elementów + mapa głębi — przypisz im płyty koloru`);
+                if (token === SEG.token) setProcessingStatus('', null, false);
             } catch (err) {
                 console.error('Segmentation failed:', err);
-                SEG.ready = false;
-                setSegStatus('Segmentacja AI niedostępna (wymaga internetu) — używam trybu tonalnego');
+                if (token === SEG.token) {
+                    SEG.ready = false;
+                    setSegStatus('Segmentacja AI niedostępna (wymaga internetu) — używam trybu tonalnego');
+                    setProcessingStatus('Podgląd gotowy; segmentacja AI niedostępna.', null);
+                    setTimeout(() => {
+                        if (token === SEG.token) setProcessingStatus('', null, false);
+                    }, 5000);
+                }
             } finally {
-                if (token === SEG.token) SEG.busy = false;
-                if (btn) btn.disabled = false;
+                if (token === SEG.token) {
+                    SEG.busy = false;
+                    if (btn) btn.disabled = false;
+                    const modelSel = document.getElementById('segModel');
+                    if (modelSel) modelSel.disabled = false;
+                }
             }
         }
+        document.addEventListener('change', (e) => {
+            if (e.target.id !== 'segModel' || SEG.busy) return;
+            if (SEG.worker) { SEG.worker.terminate(); SEG.worker = null; }
+            SEG.pipe = null;
+            SEG.ready = false;
+            if (isImageLoaded) runSegmentation();
+        });
         // Per-image tone map: blends a percentile stretch with histogram equalisation so every photo
         // gets a sensible share of ink / slate / colour / light plates, whatever its exposure.
         let lutTex = null;
@@ -1835,28 +2461,54 @@
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 256, 1, 0, gl.RED, gl.UNSIGNED_BYTE, lut);
             gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
         }
-        function loadSourceIntoEngine() {
+        function loadSourceIntoEngine(onReady = null) {
             if (!gl) initWebGL2();
-            measureSourceLevels();
-            isImageLoaded = true;
-            const origW = sourceImage.naturalWidth || sourceImage.width;
-            const origH = sourceImage.naturalHeight || sourceImage.height;
+            const imageToLoad = sourceImage;
+            const origW = imageToLoad.naturalWidth || imageToLoad.width;
+            const origH = imageToLoad.naturalHeight || imageToLoad.height;
             resolutionBadge.textContent = `${origW} × ${origH} px`;
+            document.getElementById('emptyState').hidden = true;
+            glCanvas.style.visibility = 'visible';
+            setProcessingStatus('Tworzę podgląd obrazu…');
+            requestAnimationFrame(() => {
+                if (sourceImage !== imageToLoad) return;
+                try {
+                    measureSourceLevels();
+                    isImageLoaded = true;
+                    const maxPreview = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 8192);
+                    if (origW > maxPreview || origH > maxPreview) {
+                        const r = Math.min(maxPreview / origW, maxPreview / origH);
+                        previewWidth = Math.round(origW * r);
+                        previewHeight = Math.round(origH * r);
+                    } else {
+                        previewWidth = origW;
+                        previewHeight = origH;
+                    }
 
-            const maxPreview = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 8192);
-            if (origW > maxPreview || origH > maxPreview) {
-                const r = Math.min(maxPreview / origW, maxPreview / origH);
-                previewWidth = Math.round(origW * r);
-                previewHeight = Math.round(origH * r);
-            } else {
-                previewWidth = origW;
-                previewHeight = origH;
-            }
-
-            allocatePipelineBuffers(previewWidth, previewHeight);
-            SEG.ready = false; DEPTH.ready = false; SEG.items = []; renderSegList();
-            execute4PassPipeline();
-            if (SEG.enabled) setTimeout(runSegmentation, 50);
+                    allocatePipelineBuffers(previewWidth, previewHeight);
+                    SEG.token++;
+                    SEG.busy = false;
+                    SEG.ready = false;
+                    DEPTH.ready = false;
+                    SEG.items = [];
+                    renderSegList();
+                    syncSlidersUI();
+                    execute4PassPipeline();
+                    if (SEG.enabled) {
+                        setProcessingStatus('Podgląd gotowy — przygotowuję analizę AI…');
+                        setTimeout(runSegmentation, 50);
+                    } else {
+                        setProcessingStatus('', null, false);
+                    }
+                    if (onReady) onReady();
+                } catch (error) {
+                    console.error('Image processing failed:', error);
+                    isImageLoaded = false;
+                    glCanvas.style.visibility = 'hidden';
+                    document.getElementById('emptyState').hidden = false;
+                    setProcessingStatus('Nie udało się przygotować obrazu.', null);
+                }
+            });
         }
 
         // ============================================================================
@@ -2296,24 +2948,31 @@
         // ============================================================================
         function renderPaletteCards() {
             paletteGrid.innerHTML = '';
+            document.getElementById('paletteCount').textContent = `${PRINTONE_PALETTES.length} palet`;
             PRINTONE_PALETTES.forEach(p => {
                 const btn = document.createElement('button');
                 const active = state.activePaletteId === p.id;
-                btn.className = `glass-button p-2.5 rounded-xl text-left flex flex-col gap-1 transition-all ${active ? 'preset-active' : ''}`;
+                btn.type = 'button';
+                btn.title = `${p.name} — ${p.subtitle}`;
+                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+                btn.className = `glass-button palette-card text-left flex flex-col transition-all ${active ? 'preset-active' : ''}`;
                 btn.innerHTML = `
                     <div class="flex items-center justify-between w-full">
-                        <span class="text-[11px] font-semibold text-white truncate pr-1">${p.name}</span>
-                        <div class="flex items-center -space-x-1 shrink-0">
-                            <span class="w-3 h-3 rounded-full border border-white/40 shadow" style="background:${p.ink}"></span>
-                            <span class="w-3 h-3 rounded-full border border-white/40 shadow" style="background:${p.slate}"></span>
-                            <span class="w-3 h-3 rounded-full border border-white/40 shadow" style="background:${p.mid}"></span>
-                            <span class="w-3 h-3 rounded-full border border-white/40 shadow" style="background:${p.sky}"></span>
-                            <span class="w-3 h-3 rounded-full border border-white/40 shadow" style="background:${p.high}"></span>
-                        </div>
+                        <span class="palette-name font-semibold truncate pr-1">${p.name}</span>
                     </div>
-                    <span class="text-[9px] text-white/50 truncate">${p.subtitle}</span>
+                    <span class="palette-swatches" aria-hidden="true">
+                        <span style="background:${p.ink}"></span>
+                        <span style="background:${p.slate}"></span>
+                        <span style="background:${p.mid}"></span>
+                        <span style="background:${p.sky}"></span>
+                        <span style="background:${p.high}"></span>
+                    </span>
+                    <span class="palette-subtitle truncate">${p.subtitle}</span>
                 `;
-                btn.addEventListener('click', () => applyPalette(p));
+                btn.addEventListener('click', () => {
+                    applyPalette(p);
+                    document.getElementById('paletteDisclosure').open = false;
+                });
                 paletteGrid.appendChild(btn);
             });
         }
@@ -2352,26 +3011,41 @@
             document.getElementById('valInkWeight').textContent = `${state.inkWeight}%`;
 
             document.getElementById('paramLineThickness').value = state.lineThickness;
-            document.getElementById('valLineThickness').textContent = `${Number(state.lineThickness).toFixed(1)} px`;
+            document.getElementById('valLineThickness').textContent = `${Number(state.lineThickness).toFixed(1)}×`;
 
             document.getElementById('paramSpecularPop').value = state.specularPop;
             document.getElementById('valSpecularPop').textContent = `${state.specularPop}%`;
 
             document.getElementById('paramRaggedness').value = state.raggedness;
             document.getElementById('valRaggedness').textContent = `${state.raggedness}%`;
+            document.getElementById('paramGrainAmount').value = state.grainAmount;
+            document.getElementById('valGrainAmount').textContent = `${state.grainAmount}%`;
+            document.getElementById('paramInkSplatter').value = state.inkSplatter;
+            document.getElementById('valInkSplatter').textContent = `${state.inkSplatter}%`;
+            document.getElementById('paramScreenToneAmount').value = state.screenToneAmount;
+            document.getElementById('valScreenToneAmount').textContent = `${state.screenToneAmount}%`;
             document.getElementById('paramShapeSmooth').value = state.shapeSmooth;
             document.getElementById('valShapeSmooth').textContent = `${state.shapeSmooth}%`;
+            const smoothDisabled = state.engraveMode >= 2;
+            document.getElementById('paramShapeSmooth').disabled = smoothDisabled;
+            document.getElementById('shapeSmoothHelp').textContent = smoothDisabled
+                ? 'Niedostępne w drzeworycie i rycinie punktowej — te style zachowują własną fakturę.'
+                : 'Wygładza granice kolorowych obszarów w trybach komiksowych.';
             document.getElementById('paramDepth').value = state.depthAmt;
             document.getElementById('valDepth').textContent = `${state.depthAmt}%`;
+            document.getElementById('paramDepth').disabled = !DEPTH.ready;
+            document.getElementById('depthHelp').textContent = DEPTH.ready
+                ? 'Mapa głębi gotowa — reguluje rozjaśnianie dalszych planów.'
+                : 'Niedostępny do czasu wyliczenia mapy głębi AI.';
 
             document.getElementById('paramShadowDetail').value = state.shadowDetail;
             document.getElementById('valShadowDetail').textContent = `${state.shadowDetail}%`;
 
             document.getElementById('paramShadowCutoff').value = state.shadowCutoff;
-            document.getElementById('valShadowCutoff').textContent = Number(state.shadowCutoff).toFixed(2);
+            document.getElementById('valShadowCutoff').textContent = `${Math.round(state.shadowCutoff * 100)}%`;
 
             document.getElementById('paramHighCutoff').value = state.highCutoff;
-            document.getElementById('valHighCutoff').textContent = Number(state.highCutoff).toFixed(2);
+            document.getElementById('valHighCutoff').textContent = `${Math.round(state.highCutoff * 100)}%`;
 
             document.getElementById('paramFrame').checked = state.showFrame;
 
@@ -2400,6 +3074,12 @@
             execute4PassPipeline();
         }
 
+        function markPaletteCustom() {
+            state.activePaletteId = 'custom';
+            activePaletteName.textContent = 'Własna paleta';
+            renderPaletteCards();
+        }
+
         // Bind 5 Color Pickers
         [
             [colorInkInput, 'colorInk'],
@@ -2410,9 +3090,7 @@
         ].forEach(([el, key]) => {
             el.addEventListener('input', (e) => {
                 state[key] = e.target.value;
-                state.activePaletteId = 'custom';
-                activePaletteName.textContent = 'Własna Matryca 5-Płytowa';
-                renderPaletteCards();
+                markPaletteCustom();
                 syncColorsUI();
                 execute4PassPipeline();
             });
@@ -2422,6 +3100,7 @@
             const t = state.colorMid;
             state.colorMid = state.colorSky;
             state.colorSky = t;
+            markPaletteCustom();
             syncColorsUI();
             execute4PassPipeline();
             showToast('Zamieniono miejscami Płytę 3 (Mgła) i Płytę 4 (Niebo)', '⇄');
@@ -2431,6 +3110,7 @@
             const t = state.colorInk;
             state.colorInk = state.colorMid;
             state.colorMid = t;
+            markPaletteCustom();
             syncColorsUI();
             execute4PassPipeline();
             showToast('Odwrócono płytę tuszu i akcentu', '🌗');
@@ -2440,6 +3120,9 @@
         document.querySelectorAll('.engrave-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 state.engraveMode = parseInt(btn.dataset.mode, 10);
+                if (state.engraveMode === 3 && state.screenToneAmount === 0) {
+                    state.screenToneAmount = STYLE_DEFAULTS[3].screenToneAmount;
+                }
                 syncSlidersUI();
                 execute4PassPipeline();
             });
@@ -2461,6 +3144,9 @@
         bindRange('paramLineThickness', 'lineThickness', parseFloat);
         bindRange('paramSpecularPop', 'specularPop', parseInt);
         bindRange('paramRaggedness', 'raggedness', parseInt);
+        bindRange('paramScreenToneAmount', 'screenToneAmount', parseInt);
+        bindRange('paramInkSplatter', 'inkSplatter', parseInt);
+        bindRange('paramGrainAmount', 'grainAmount', parseInt);
         bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
         bindRange('paramDepth', 'depthAmt', parseInt);
         bindRange('paramShadowDetail', 'shadowDetail', parseInt);
@@ -2474,10 +3160,16 @@
 
         document.getElementById('resetParamsBtn').addEventListener('click', () => {
             const p = PRINTONE_PALETTES.find(x => x.id === state.activePaletteId) || PRINTONE_PALETTES[0];
-            Object.assign(state, p.preset);
+            applyPalette(p);
+            showToast(`Przywrócono domyślne ustawienia: ${p.name}`, '↺');
+        });
+
+        document.getElementById('resetStyleBtn').addEventListener('click', () => {
+            Object.assign(state, STYLE_DEFAULTS[state.engraveMode]);
             syncSlidersUI();
             execute4PassPipeline();
-            showToast('Przywrócono fabryczne parametry matrycy', '⚙️');
+            const styleNames = ['Komiks wektorowy', 'Plakat noir split', 'Drzeworyt', 'Rycina punktowa'];
+            showToast(`Przywrócono domyślne ustawienia: ${styleNames[state.engraveMode]}`, '↺');
         });
 
         // Split-Screen Comparison Slider
@@ -2488,47 +3180,61 @@
             execute4PassPipeline();
         });
 
-        // Scene Preset Buttons
-        document.getElementById('sampleGuardianBtn').addEventListener('click', () => {
-            applyPalette(PRINTONE_PALETTES[0]);
-            createGuardianAlleyScene();
-            showToast('Wczytano scenę: Mroczny Strażnik w Alei (Crimson Alley)', '🗡️');
-        });
-
-        document.getElementById('sampleGreenKnightBtn').addEventListener('click', () => {
-            applyPalette(PRINTONE_PALETTES[1]);
-            createHornedForestKnightScene();
-            showToast('Wczytano scenę: Rogaty Rycerz w Lesie (CCLVII)', '🦌');
-        });
-
-        document.getElementById('sampleSerpentBtn').addEventListener('click', () => {
-            applyPalette(PRINTONE_PALETTES[2]);
-            createSkeletonAndSerpentScene();
-            showToast('Wczytano scenę: Szkielet i Wąż (Coming of the Dawn)', '💀');
-        });
-
-        document.getElementById('sampleEclipseBtn').addEventListener('click', () => {
-            applyPalette(PRINTONE_PALETTES[4]);
-            createPinkEclipseCrownScene();
-            showToast('Wczytano scenę: Zaćmienie Korony (Pink Eclipse)', '👑');
-        });
-
         // File Upload Listener
+        let sourceLoadToken = 0;
+        let activeSourceReader = null;
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            state.fileName = file.name.replace(/\.[^/.]+$/, '');
+            fileInput.value = '';
+            const token = ++sourceLoadToken;
+            if (activeSourceReader && activeSourceReader.readyState === FileReader.LOADING) activeSourceReader.abort();
             const reader = new FileReader();
+            activeSourceReader = reader;
+            setProcessingStatus('Otwieram plik zdjęcia…');
+            reader.onerror = () => {
+                if (token !== sourceLoadToken) return;
+                activeSourceReader = null;
+                setProcessingStatus('Nie udało się odczytać tego pliku.', null);
+                showToast('Nie udało się odczytać zdjęcia', '⚠️');
+            };
+            reader.onabort = () => {
+                if (token === sourceLoadToken) {
+                    activeSourceReader = null;
+                    setProcessingStatus('', null, false);
+                }
+            };
             reader.onload = (ev) => {
-                sourceImage = new Image();
-                sourceImage.onload = () => {
-                    loadSourceIntoEngine();
-                    showToast(`Wczytano zdjęcie: ${file.name}`, '🖼️');
+                if (token !== sourceLoadToken) return;
+                const image = new Image();
+                image.onload = () => {
+                    if (token !== sourceLoadToken) return;
+                    const previousSnapshot = captureEditorSnapshot();
+                    SEG.token++;
+                    SEG.busy = false;
+                    const segBtn = document.getElementById('segBtn');
+                    if (segBtn) segBtn.disabled = false;
+                    sourceImage = image;
+                    state.fileName = file.name.replace(/\.[^/.]+$/, '');
+                    SEG.pendingPlates = null;
+                    loadSourceIntoEngine(() => {
+                        if (restoringHistory || token !== sourceLoadToken) return;
+                        recordUndoSnapshot(previousSnapshot);
+                        showToast(`Wczytano zdjęcie: ${file.name}`, '🖼️');
+                    });
+                    activeSourceReader = null;
                 };
-                sourceImage.src = ev.target.result;
+                image.onerror = () => {
+                    if (token !== sourceLoadToken) return;
+                    activeSourceReader = null;
+                    setProcessingStatus('Nie udało się otworzyć tego obrazu.', null);
+                    showToast('Nieobsługiwany lub uszkodzony plik obrazu', '⚠️');
+                };
+                image.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         });
+        document.getElementById('emptyStateOpenBtn').addEventListener('click', () => fileInput.click());
 
         // Native Vectorizer Button Action (Optimizes parameters instantly to pure comic style)
         document.getElementById('vectorizeBtn').addEventListener('click', () => {
@@ -2542,13 +3248,17 @@
             showToast('Uruchomiono wektorową abstrakcję Mignoli', '⚡');
         });
 
-        // Initialize WebGL and load default scene immediately on startup
+        // Initialize the editor without loading an example image.
         window.addEventListener('DOMContentLoaded', () => {
             initWebGL2();
             renderPaletteCards();
             syncColorsUI();
             syncSlidersUI();
-            createGuardianAlleyScene();
+            glCanvas.style.visibility = 'hidden';
+            document.getElementById('emptyState').hidden = false;
+            resolutionBadge.textContent = 'Brak obrazu';
+            document.getElementById('undoBtn').disabled = true;
+            document.getElementById('redoBtn').disabled = true;
         });
 
         // Format Select Listener (Show/Hide JPG Quality Slider)
@@ -2663,4 +3373,180 @@
             SEG.enabled = true;
             document.getElementById('segToggle').checked = true;
             runSegmentation();
-        });</script></body></html>
+        });
+
+        const undoStack = [];
+        const redoStack = [];
+        const historyLimit = 100;
+        let pendingEditSnapshot = null;
+        let restoringHistory = false;
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+
+        function captureEditorSnapshot() {
+            return {
+                state: { ...state },
+                sourceImage,
+                imageLoaded: isImageLoaded,
+                segEnabled: SEG.enabled,
+                segmentPlates: SEG.items.map(item => [item.label, item.plate]),
+                format: formatSelect.value,
+                exportScale: document.getElementById('exportScale').value,
+                quality: qualitySlider.value,
+                splitValue: splitSlider.value
+            };
+        }
+
+        function snapshotsMatch(a, b) {
+            return a.sourceImage === b.sourceImage &&
+                a.imageLoaded === b.imageLoaded &&
+                a.segEnabled === b.segEnabled &&
+                JSON.stringify(a.state) === JSON.stringify(b.state) &&
+                JSON.stringify(a.segmentPlates) === JSON.stringify(b.segmentPlates) &&
+                a.format === b.format &&
+                a.exportScale === b.exportScale &&
+                a.quality === b.quality &&
+                a.splitValue === b.splitValue;
+        }
+
+        function updateHistoryButtons() {
+            undoBtn.disabled = undoStack.length === 0;
+            redoBtn.disabled = redoStack.length === 0;
+        }
+
+        function commitPendingEdit() {
+            if (restoringHistory || !pendingEditSnapshot) return;
+            const before = pendingEditSnapshot;
+            pendingEditSnapshot = null;
+            const after = captureEditorSnapshot();
+            if (snapshotsMatch(before, after)) return;
+            recordUndoSnapshot(before);
+        }
+
+        function recordUndoSnapshot(snapshot) {
+            if (restoringHistory) return;
+            undoStack.push(snapshot);
+            if (undoStack.length > historyLimit) undoStack.shift();
+            redoStack.length = 0;
+            updateHistoryButtons();
+        }
+
+        function beginPendingEdit() {
+            if (!restoringHistory && !pendingEditSnapshot) pendingEditSnapshot = captureEditorSnapshot();
+        }
+
+        function restoreEditorSnapshot(snapshot) {
+            restoringHistory = true;
+            const sourceChanged = sourceImage !== snapshot.sourceImage;
+            Object.assign(state, snapshot.state);
+            sourceImage = snapshot.sourceImage;
+            isImageLoaded = snapshot.imageLoaded;
+            SEG.enabled = snapshot.segEnabled;
+            SEG.pendingPlates = Object.fromEntries(snapshot.segmentPlates);
+            formatSelect.value = snapshot.format;
+            document.getElementById('exportScale').value = snapshot.exportScale;
+            qualitySlider.value = snapshot.quality;
+            qualityValue.textContent = `${Math.round(Number(snapshot.quality) * 100)}%`;
+            qualityContainer.classList.toggle('hidden', snapshot.format !== 'image/jpeg');
+            splitSlider.value = snapshot.splitValue;
+            splitVal.textContent = `${snapshot.splitValue}%`;
+            document.getElementById('segToggle').checked = snapshot.segEnabled;
+
+            const palette = PRINTONE_PALETTES.find(item => item.id === state.activePaletteId);
+            activePaletteName.textContent = palette ? palette.name : 'Własna paleta';
+            renderPaletteCards();
+            syncColorsUI();
+            syncSlidersUI();
+
+            if (sourceChanged) {
+                SEG.token++;
+                SEG.busy = false;
+                SEG.ready = false;
+                SEG.items = [];
+                DEPTH.ready = false;
+                if (snapshot.imageLoaded) {
+                    loadSourceIntoEngine();
+                } else {
+                    glCanvas.style.visibility = 'hidden';
+                    document.getElementById('emptyState').hidden = false;
+                    resolutionBadge.textContent = 'Brak obrazu';
+                    setProcessingStatus('', null, false);
+                    if (gl) {
+                        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                        gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+                        gl.clearColor(0.06, 0.07, 0.09, 1);
+                        gl.clear(gl.COLOR_BUFFER_BIT);
+                    }
+                }
+            } else {
+                SEG.items.forEach(item => {
+                    if (Object.prototype.hasOwnProperty.call(SEG.pendingPlates, item.label)) {
+                        item.plate = SEG.pendingPlates[item.label];
+                    }
+                });
+                SEG.pendingPlates = null;
+                renderSegList();
+                if (isImageLoaded) execute4PassPipeline();
+            }
+            restoringHistory = false;
+        }
+
+        function undoEdit() {
+            commitPendingEdit();
+            if (!undoStack.length) return;
+            redoStack.push(captureEditorSnapshot());
+            restoreEditorSnapshot(undoStack.pop());
+            updateHistoryButtons();
+        }
+
+        function redoEdit() {
+            commitPendingEdit();
+            if (!redoStack.length) return;
+            undoStack.push(captureEditorSnapshot());
+            restoreEditorSnapshot(redoStack.pop());
+            updateHistoryButtons();
+        }
+
+        function isEditableTarget(target) {
+            if (!(target instanceof Element)) return false;
+            if (target.closest('#undoBtn, #redoBtn, #zoomInBtn, #zoomOutBtn, #zoomResetBtn')) return false;
+            if (target.closest('#fileInput')) return false;
+            return Boolean(target.closest('button, input, select'));
+        }
+
+        document.addEventListener('pointerdown', event => {
+            if (isEditableTarget(event.target)) beginPendingEdit();
+        }, true);
+        document.addEventListener('keydown', event => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+                event.preventDefault();
+                if (event.shiftKey) redoEdit();
+                else undoEdit();
+                return;
+            }
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
+                event.preventDefault();
+                redoEdit();
+                return;
+            }
+            if (isEditableTarget(event.target)) beginPendingEdit();
+        }, true);
+        document.addEventListener('input', event => {
+            if (isEditableTarget(event.target)) beginPendingEdit();
+        }, true);
+        document.addEventListener('change', event => {
+            if (!isEditableTarget(event.target)) return;
+            beginPendingEdit();
+            setTimeout(commitPendingEdit, 0);
+        }, true);
+        document.addEventListener('click', event => {
+            if (!isEditableTarget(event.target)) return;
+            beginPendingEdit();
+            setTimeout(commitPendingEdit, 0);
+        }, true);
+        document.addEventListener('pointerup', commitPendingEdit, true);
+        document.addEventListener('pointercancel', commitPendingEdit, true);
+        undoBtn.addEventListener('click', undoEdit);
+        redoBtn.addEventListener('click', redoEdit);
+        updateHistoryButtons();
+    </script></body></html>
