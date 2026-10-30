@@ -840,6 +840,7 @@
         uniform int u_engraveMode;   // 0: Vector Graphic Novel, 1: Noir Poster Split, 2: Woodcut, 3: Stipple
         uniform float u_carveDepth;
         uniform float u_skySplit;
+        uniform sampler2D u_lutTex;
         uniform float u_inkWeight;
         uniform float u_specularPop;
         uniform float u_raggedness;
@@ -897,7 +898,7 @@
             vec2 metricUV = vec2(v_uv.x * aspect, v_uv.y);
 
             vec4 p3 = texture(u_pass3Tex, v_uv);
-            float luma      = p3.r;
+            float luma      = texture(u_lutTex, vec2(clamp(p3.r, 0.0, 1.0) * (255.0 / 256.0) + 0.5 / 256.0, 0.5)).r;
             float specScore = p3.g;
             float rimShard  = p3.b;
             float texField  = p3.a;
@@ -910,7 +911,7 @@
                 float ws = 0.0;
                 for (int j = -2; j <= 2; j++) {
                     for (int i = -2; i <= 2; i++) {
-                        vec2 off = vec2(float(i), float(j)) * 3.0 / u_resolution;
+                        vec2 off = vec2(float(i) / aspect, float(j)) * 0.0021;
                         float l = texture(u_pass3Tex, v_uv + off).r;
                         float w = exp(-(l - luma) * (l - luma) / 0.01) * exp(-float(i * i + j * j) / 6.0);
                         s0 += texture(u_seg0, v_uv + off) * w;
@@ -965,7 +966,7 @@
             if (u_segOn > 0.5) {
                 // The detected person keeps its own tonal split (coat folds = slate); everything else is crushed to ink
                 float personThresh = 0.05 + (1.0 - u_shadowDetail / 100.0) * 0.12;
-                effectiveBlackThresh = mix(blackCrushThresh * 1.25, personThresh, personW);
+                effectiveBlackThresh = mix(blackCrushThresh * 0.8, personThresh, personW);
             }
 
             float isSlateCoat = smoothstep(effectiveBlackThresh - aa, effectiveBlackThresh + aa, sculptedLuma);
@@ -1012,6 +1013,7 @@
             // --- PLATE 5: PINPOINT SPECULAR HIGHLIGHTS (Glowing Eyes, White Shirt, Knife Blade, Belt Buckle) ---
             // Specifically targets high-contrast focal highlights in the central figure region
             float centerFocus = 1.0 - smoothstep(0.18, 0.42, abs(v_uv.x - 0.5));
+            if (u_segOn > 0.5) centerFocus = 0.45 + 0.55 * personW;
             float specThresh = 1.05 - (u_specularPop / 100.0) * 0.58;
             float isSpecular = smoothstep(specThresh - 0.02, specThresh + 0.02, specScore * (0.55 + 0.65 * centerFocus));
 
@@ -1352,12 +1354,14 @@
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         }
 
-        function execute4PassPipeline(resolutionScale = 1.0) {
+        function execute4PassPipeline() {
             if (!gl) initWebGL2();
             if (!gl || !isImageLoaded) return;
 
             const w = glCanvas.width;
             const h = glCanvas.height;
+            // Filter radii stay proportional to the image, so any resolution gives the same look
+            const resolutionScale = Math.max(1, Math.max(w, h) / 1400);
             const tx = 1.0 / w;
             const ty = 1.0 / h;
 
@@ -1433,6 +1437,9 @@
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_splitRatio'), state.splitRatio);
 
             bindSegmentationUniforms();
+            gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, lutTex);
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_lutTex'), 4);
+            gl.activeTexture(gl.TEXTURE0);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
         }
 
@@ -1477,7 +1484,7 @@
                     if (SEG_PL[key] === it.plate) op.selected = true;
                     sel.appendChild(op);
                 });
-                sel.addEventListener('change', () => { SEG.items[idx].plate = SEG_PL[sel.value]; execute4PassPipeline(1.0); });
+                sel.addEventListener('change', () => { SEG.items[idx].plate = SEG_PL[sel.value]; execute4PassPipeline(); });
                 row.appendChild(sel);
                 box.appendChild(row);
             });
@@ -1559,11 +1566,31 @@
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, d);
                 });
-                SEG.items = found.map(s => ({ label: s.label, frac: s.frac, plate: SEG_PL[SEG_DEFAULTS[s.label] || 'auto'] }));
+                const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+                // Re-derive the tone curve from the non-sky pixels so the rest of the scene gets the full tonal range
+                const skyIdx = found.findIndex(s => s.label === 'sky');
+                if (skyIdx >= 0) {
+                    const h2 = new Float32Array(256); let cnt = 0;
+                    for (let i = 0; i < total; i += 2) {
+                        if (found[skyIdx].mask[i] > 127) continue;
+                        const q = i * 4; h2[Math.round(0.2126 * px[q] + 0.7152 * px[q + 1] + 0.0722 * px[q + 2])]++; cnt++;
+                    }
+                    if (cnt > total * 0.05) applyHistToLut(h2);
+                }
+                SEG.items = found.map(s => {
+                    let sum = 0, n = 0;
+                    for (let i = 0; i < total; i += 3) if (s.mask[i] > 127) { const q = i * 4; sum += 0.2126 * px[q] + 0.7152 * px[q + 1] + 0.0722 * px[q + 2]; n++; }
+                    const mean = n ? sum / n / 255 : 0.5;
+                    let key = SEG_DEFAULTS[s.label] || 'auto';
+                    // Forcing a plate only where it matches the region's tone avoids wiping out bright or dark areas of other photos
+                    if (key === 'ink' && mean > 0.38) key = 'auto';
+                    if (key === 'mid' && mean < 0.25) key = 'auto';
+                    return { label: s.label, frac: s.frac, plate: SEG_PL[key] };
+                });
                 SEG.ready = true;
                 renderSegList();
                 setSegStatus(`Wykryto ${SEG.items.length} elementów — przypisz im płyty koloru`);
-                execute4PassPipeline(1.0);
+                execute4PassPipeline();
             } catch (err) {
                 console.error('Segmentation failed:', err);
                 SEG.ready = false;
@@ -1573,14 +1600,60 @@
                 if (btn) btn.disabled = false;
             }
         }
+        // Per-image tone map: blends a percentile stretch with histogram equalisation so every photo
+        // gets a sensible share of ink / slate / colour / light plates, whatever its exposure.
+        let lutTex = null;
+        const LUT_REF_LO = 0.06, LUT_REF_HI = 0.78, LUT_EQ = 0.65;
+        function measureSourceLevels() {
+            const c = document.createElement('canvas');
+            const iw = sourceImage.naturalWidth || sourceImage.width, ih = sourceImage.naturalHeight || sourceImage.height;
+            const r = Math.min(1, 384 / Math.max(iw, ih));
+            c.width = Math.max(8, Math.round(iw * r)); c.height = Math.max(8, Math.round(ih * r));
+            const x = c.getContext('2d', { willReadFrequently: true });
+            x.drawImage(sourceImage, 0, 0, c.width, c.height);
+            const d = x.getImageData(0, 0, c.width, c.height).data;
+            const hist = new Float32Array(256);
+            for (let i = 0; i < d.length; i += 4) hist[Math.round(0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2])]++;
+            applyHistToLut(hist);
+        }
+        function applyHistToLut(hist) {
+            const sm = new Float32Array(256);
+            for (let i = 0; i < 256; i++) { let s = 0, n = 0; for (let k = -4; k <= 4; k++) { const j = i + k; if (j >= 0 && j < 256) { s += hist[j]; n++; } } sm[i] = s / n; }
+            let total = 0; for (let i = 0; i < 256; i++) total += sm[i];
+            const cdf = new Float32Array(256); let a = 0;
+            for (let i = 0; i < 256; i++) { a += sm[i]; cdf[i] = a / total; }
+            const lo = (() => { for (let i = 0; i < 256; i++) if (cdf[i] >= 0.02) return i; return 0; })();
+            const hi = (() => { for (let i = 0; i < 256; i++) if (cdf[i] >= 0.98) return i; return 255; })();
+            const span = Math.max(hi - lo, 40);
+            const lut = new Uint8Array(256);
+            for (let i = 0; i < 256; i++) {
+                const lin = Math.min(1, Math.max(0, (i - lo) / span));
+                const t = LUT_EQ * cdf[i] + (1 - LUT_EQ) * lin;
+                lut[i] = Math.round((LUT_REF_LO + t * (LUT_REF_HI - LUT_REF_LO)) * 255);
+            }
+            if (!lutTex) {
+                lutTex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, lutTex);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            }
+            gl.bindTexture(gl.TEXTURE_2D, lutTex);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 256, 1, 0, gl.RED, gl.UNSIGNED_BYTE, lut);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+        }
         function loadSourceIntoEngine() {
             if (!gl) initWebGL2();
+            measureSourceLevels();
             isImageLoaded = true;
             const origW = sourceImage.naturalWidth || sourceImage.width;
             const origH = sourceImage.naturalHeight || sourceImage.height;
             resolutionBadge.textContent = `${origW} × ${origH} px`;
 
-            const maxPreview = 1400;
+            const maxPreview = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 8192);
             if (origW > maxPreview || origH > maxPreview) {
                 const r = Math.min(maxPreview / origW, maxPreview / origH);
                 previewWidth = Math.round(origW * r);
@@ -1592,7 +1665,7 @@
 
             allocatePipelineBuffers(previewWidth, previewHeight);
             SEG.ready = false; SEG.items = []; renderSegList();
-            execute4PassPipeline(1.0);
+            execute4PassPipeline();
             if (SEG.enabled) setTimeout(runSegmentation, 50);
         }
 
@@ -2130,7 +2203,7 @@
             renderPaletteCards();
             syncColorsUI();
             syncSlidersUI();
-            execute4PassPipeline(1.0);
+            execute4PassPipeline();
         }
 
         // Bind 5 Color Pickers
@@ -2147,7 +2220,7 @@
                 activePaletteName.textContent = 'Własna Matryca 5-Płytowa';
                 renderPaletteCards();
                 syncColorsUI();
-                execute4PassPipeline(1.0);
+                execute4PassPipeline();
             });
         });
 
@@ -2156,7 +2229,7 @@
             state.colorMid = state.colorSky;
             state.colorSky = t;
             syncColorsUI();
-            execute4PassPipeline(1.0);
+            execute4PassPipeline();
             showToast('Zamieniono miejscami Płytę 3 (Mgła) i Płytę 4 (Niebo)', '⇄');
         });
 
@@ -2165,7 +2238,7 @@
             state.colorInk = state.colorMid;
             state.colorMid = t;
             syncColorsUI();
-            execute4PassPipeline(1.0);
+            execute4PassPipeline();
             showToast('Odwrócono płytę tuszu i akcentu', '🌗');
         });
 
@@ -2174,7 +2247,7 @@
             btn.addEventListener('click', () => {
                 state.engraveMode = parseInt(btn.dataset.mode, 10);
                 syncSlidersUI();
-                execute4PassPipeline(1.0);
+                execute4PassPipeline();
             });
         });
 
@@ -2183,7 +2256,7 @@
             document.getElementById(id).addEventListener('input', (e) => {
                 state[key] = parser(e.target.value);
                 syncSlidersUI();
-                execute4PassPipeline(1.0);
+                execute4PassPipeline();
             });
         }
 
@@ -2200,14 +2273,14 @@
 
         document.getElementById('paramFrame').addEventListener('change', (e) => {
             state.showFrame = e.target.checked;
-            execute4PassPipeline(1.0);
+            execute4PassPipeline();
         });
 
         document.getElementById('resetParamsBtn').addEventListener('click', () => {
             const p = PRINTONE_PALETTES.find(x => x.id === state.activePaletteId) || PRINTONE_PALETTES[0];
             Object.assign(state, p.preset);
             syncSlidersUI();
-            execute4PassPipeline(1.0);
+            execute4PassPipeline();
             showToast('Przywrócono fabryczne parametry matrycy', '⚙️');
         });
 
@@ -2216,7 +2289,7 @@
             const val = parseInt(e.target.value, 10);
             state.splitRatio = val / 100.0;
             splitVal.textContent = `${val}%`;
-            execute4PassPipeline(1.0);
+            execute4PassPipeline();
         });
 
         // Scene Preset Buttons
@@ -2269,7 +2342,7 @@
             state.specularPop = 95;
             state.shadowCutoff = 0.38;
             syncSlidersUI();
-            execute4PassPipeline(1.0);
+            execute4PassPipeline();
             showToast('Uruchomiono wektorową abstrakcję Mignoli', '⚡');
         });
 
@@ -2364,13 +2437,13 @@
             const prevW = glCanvas.width, prevH = glCanvas.height, prevSplit = state.splitRatio;
             state.splitRatio = 0;
             allocatePipelineBuffers(w, h);
-            execute4PassPipeline(w / prevW);
+            execute4PassPipeline();
             const type = formatSelect.value;
             const ext = type === 'image/jpeg' ? 'jpg' : 'png';
             glCanvas.toBlob((blob) => {
                 state.splitRatio = prevSplit;
                 allocatePipelineBuffers(prevW, prevH);
-                execute4PassPipeline(1.0);
+                execute4PassPipeline();
                 if (!blob) { showToast('Eksport nie powiódł się', '⚠️'); return; }
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
@@ -2388,7 +2461,7 @@
         document.getElementById('segToggle').addEventListener('change', (e) => {
             SEG.enabled = e.target.checked;
             if (SEG.enabled && !SEG.ready && !SEG.busy) runSegmentation();
-            else execute4PassPipeline(1.0);
+            else execute4PassPipeline();
         });
         document.getElementById('segBtn').addEventListener('click', () => {
             SEG.enabled = true;
