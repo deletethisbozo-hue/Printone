@@ -666,6 +666,14 @@
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Linie tuszu XDoG (bez AI)</span>
+                            <span id="valXdog" class="font-mono text-sky-300">0%</span>
+                        </div>
+                        <input type="range" id="paramXdog" aria-label="Linie tuszu XDoG" min="0" max="100" step="1" value="0">
+                        <p class="text-[9px] text-white/45">Cienkie, odręczne kontury liczone z jasności zdjęcia; działają zawsze, bez pobierania modeli.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
                             <span class="text-white/80">Wygładzanie granic plam</span>
                             <span id="valShapeSmooth" class="font-mono text-sky-300">60%</span>
                         </div>
@@ -1489,6 +1497,8 @@
         uniform float u_grainAmount;
         uniform sampler2D u_edgeTex;  // AI edge map (PiDiNet), 1 = contour
         uniform float u_edgeAmt;      // 0 when the edge map is unavailable
+        uniform sampler2D u_xdogTex;  // source image for the XDoG line pass
+        uniform float u_xdogAmt;
 
         float hash21(vec2 p) {
             vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -1549,6 +1559,25 @@
                 comp = mix(comp, u_pal[0], line * clamp(u_edgeAmt * 2.5, 0.0, 1.0));
             }
 
+            if (u_xdogAmt > 0.001) {
+                float px = max(u_resolution.x, u_resolution.y) / 1400.0;
+                float s1 = (0.9 + 0.6 * u_xdogAmt) * px;
+                float g1 = 0.0, g2 = 0.0, w1 = 0.0, w2 = 0.0;
+                for (int j = -4; j <= 4; j++) {
+                    for (int i = -4; i <= 4; i++) {
+                        vec2 o = vec2(float(i), float(j));
+                        float r2 = dot(o, o);
+                        float l = dot(texture(u_xdogTex, v_uv + o * px / u_resolution).rgb, vec3(0.2126, 0.7152, 0.0722));
+                        float a = exp(-r2 / (2.0 * s1 * s1)), b = exp(-r2 / (2.0 * 2.6 * s1 * s1));
+                        g1 += l * a; w1 += a; g2 += l * b; w2 += b;
+                    }
+                }
+                float d = g2 / w2 - g1 / w1;
+                float eps = mix(0.060, 0.012, u_xdogAmt);
+                float xl = smoothstep(eps, eps + 0.03, d);
+                comp = mix(comp, u_pal[0], xl * clamp(u_xdogAmt * 2.0, 0.0, 1.0));
+            }
+
             float aspect = u_resolution.x / max(u_resolution.y, 1.0);
             if (u_showFrame == 1) {
                 vec2 edgeDist = min(v_uv, 1.0 - v_uv);
@@ -1601,6 +1630,7 @@
                 shapeSmooth: textured ? 0 : 58,
                 depthAmt: 65,
                 aiLines: 35,
+                xdogLines: 0,
                 shadowDetail: 74,
                 shadowCutoff: 0.36,
                 highCutoff: 0.60,
@@ -1809,7 +1839,7 @@
             inkWeight: 88,
             lineThickness: 1.5,
             specularPop: 90,
-            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35,
+            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35, xdogLines: 0,
             shadowDetail: 76,
             shadowCutoff: 0.34,
             highCutoff: 0.54,
@@ -2128,6 +2158,10 @@
             gl.bindTexture(gl.TEXTURE_2D, EDGE.tex);
             gl.uniform1i(gl.getUniformLocation(progPass5, 'u_edgeTex'), 1);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_edgeAmt'), EDGE.ready ? state.aiLines / 100.0 : 0);
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_2D, texSource);
+            gl.uniform1i(gl.getUniformLocation(progPass5, 'u_xdogTex'), 2);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_xdogAmt'), state.xdogLines / 100.0);
             gl.activeTexture(gl.TEXTURE0);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
         }
@@ -3390,6 +3424,8 @@
             document.getElementById('valDepth').textContent = `${state.depthAmt}%`;
             document.getElementById('paramAiLines').value = state.aiLines;
             document.getElementById('valAiLines').textContent = `${state.aiLines}%`;
+            document.getElementById('paramXdog').value = state.xdogLines;
+            document.getElementById('valXdog').textContent = `${state.xdogLines}%`;
             document.getElementById('paramAiLines').disabled = !EDGE.ready;
             document.getElementById('aiLinesHelp').textContent = EDGE.ready
                 ? 'Kontury z modelu PiDiNet rysowane tuszem; im więcej, tym więcej drobnych linii.'
@@ -3511,6 +3547,7 @@
         bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
         bindRange('paramDepth', 'depthAmt', parseInt);
         bindRange('paramAiLines', 'aiLines', parseInt);
+        bindRange('paramXdog', 'xdogLines', parseInt);
         bindRange('paramShadowDetail', 'shadowDetail', parseInt);
         bindRange('paramShadowCutoff', 'shadowCutoff', parseFloat);
         bindRange('paramHighCutoff', 'highCutoff', parseFloat);
