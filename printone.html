@@ -311,7 +311,7 @@
                     <!-- Podział atmosferyczny nieba (Turkusowa góra vs Czerwona mgła) -->
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Podział nieba i chmur (Płyta 4 Turkus)</span>
+                            <span class="text-white/80">Ciemne kłęby chmur (niebo i mgła)</span>
                             <span id="valSkySplit" class="font-mono text-emerald-300">68%</span>
                         </div>
                         <input type="range" id="paramSkySplit" min="0" max="100" step="1" value="68">
@@ -326,7 +326,7 @@
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Zalewanie murów czarnym tuszem (Mignola Crush)</span>
+                            <span class="text-white/80">Zasięg czerni na murach (jasne partie → czerwień)</span>
                             <span id="valInkWeight" class="font-mono text-sky-300">86%</span>
                         </div>
                         <input type="range" id="paramInkWeight" min="0" max="100" step="1" value="86">
@@ -342,7 +342,7 @@
 
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-white/80">Izolacja błysków (Oczy, Koszula, Klamra, Nóż)</span>
+                            <span class="text-white/80">Punktowe błyski (oczy, nóż, klamra)</span>
                             <span id="valSpecularPop" class="font-mono text-sky-300">88%</span>
                         </div>
                         <input type="range" id="paramSpecularPop" min="0" max="100" step="1" value="88">
@@ -920,7 +920,7 @@
             float texField  = p3.a;
 
             // Joint-bilateral refinement of the coarse AI masks: they snap to real tonal edges of the photo
-            float fInk = 0.0, fSlate = 0.0, fMid = 0.0, fSky = 0.0, fHigh = 0.0;
+            float fInk = 0.0, fSlate = 0.0, fMid = 0.0, fSky = 0.0, fHigh = 0.0, fDark = 0.0;
             float personW = 0.0, skyW = 0.0;
             if (u_segOn > 0.5) {
                 vec4 s0 = vec4(0.0), s1 = vec4(0.0);
@@ -947,11 +947,12 @@
                     else if (pl > 0.5 && pl < 1.5) fSlate += wi;
                     else if (pl > 1.5 && pl < 2.5) fMid += wi;
                     else if (pl > 2.5 && pl < 3.5) fSky += wi;
-                    else if (pl > 3.5) fHigh += wi;
+                    else if (pl > 3.5 && pl < 4.5) fHigh += wi;
+                    else if (pl > 4.5) fDark += wi;
                 }
                 personW = clamp(personW, 0.0, 1.0); skyW = clamp(skyW, 0.0, 1.0);
                 fInk = clamp(fInk, 0.0, 1.0); fSlate = clamp(fSlate, 0.0, 1.0); fMid = clamp(fMid, 0.0, 1.0);
-                fSky = clamp(fSky, 0.0, 1.0); fHigh = clamp(fHigh, 0.0, 1.0);
+                fSky = clamp(fSky, 0.0, 1.0); fHigh = clamp(fHigh, 0.0, 1.0); fDark = clamp(fDark, 0.0, 1.0);
             }
 
             // Optional organic texture modulation ONLY when user increases Raggedness or selects Woodcut/Stipple modes
@@ -959,8 +960,10 @@
             if (u_engraveMode == 2) {
                 grainMod = (texField - 0.5) * (0.25 + u_raggedness * 0.45);
             } else if (u_engraveMode == 3) {
-                float stipple = valueNoise(metricUV * 260.0) - 0.5;
-                grainMod = stipple * (0.3 + u_raggedness * 0.5);
+                // Regular 45-degree halftone screen: dots grow where the tone approaches a plate border
+                vec2 hq = mat2(0.7071, -0.7071, 0.7071, 0.7071) * metricUV * 140.0;
+                float dotp = 0.25 * (cos(hq.x * 6.2832) + cos(hq.y * 6.2832));
+                grainMod = dotp * (0.45 + u_raggedness * 0.5);
             } else {
                 // Modes 0 & 1: Clean Vector Cutout (zero cheap noise when raggedness is low!)
                 grainMod = (fbm(metricUV * 38.0) - 0.5) * (u_raggedness * 0.18);
@@ -972,6 +975,32 @@
             luma += (farness - 0.5) * 0.34 * depthW;
             float farRelease = depthW * smoothstep(0.55, 0.82, farness);
             fInk *= 1.0 - farRelease;
+
+            // Ink reach: lit parts of "ink" regions are released to the other plates (red rim light on walls)
+            float inkLimit = u_shadowCutoff + 0.12 + u_inkWeight * 0.25;
+            fInk *= 1.0 - smoothstep(inkLimit, inkLimit + 0.06, luma) * (1.0 - personW);
+
+            // Scalloped cumulus banks: grouped circles, present only where low-frequency noise exceeds a threshold set by u_skySplit
+            vec2 cp = metricUV * vec2(11.0, 19.0);
+            vec2 ci = floor(cp), cf = fract(cp);
+            float cloudThr = 0.78 - u_skySplit * 0.42;
+            float puff = -1.0;
+            for (int cy = -1; cy <= 1; cy++) {
+                for (int cx = -1; cx <= 1; cx++) {
+                    for (int cn = 0; cn < 2; cn++) {
+                        vec2 g = vec2(float(cx), float(cy));
+                        float sd = float(cn) * 23.0;
+                        vec2 o = vec2(hash21(ci + g + sd), hash21(ci + g + 17.0 + sd));
+                        vec2 cc = (ci + g + 0.1 + o * 0.8) / vec2(11.0, 19.0);
+                        float pres = valueNoise(cc * vec2(4.5, 7.0) + 7.0) * 0.65 + valueNoise(cc * vec2(10.0, 15.0) + 3.0) * 0.35;
+                        if (pres > cloudThr) {
+                            float r = 0.30 + 0.22 * hash21(ci + g + 41.0 + sd);
+                            puff = max(puff, 1.0 - length((g + 0.1 + o * 0.8 - cf) * vec2(1.0, 1.7)) / r);
+                        }
+                    }
+                }
+            }            float cloudAa = max(fwidth(puff) * 0.8, 0.004);
+            float cloudMask = smoothstep(-cloudAa, cloudAa, puff);
 
             float sculptedLuma = luma + grainMod;
 
@@ -988,7 +1017,7 @@
             float effectiveBlackThresh = mix(blackCrushThresh * 0.85, blackCrushThresh * 1.25, wallZone * u_inkWeight);
             if (u_segOn > 0.5) {
                 // The detected person keeps its own tonal split (coat folds = slate); everything else is crushed to ink
-                float personThresh = 0.05 + (1.0 - u_shadowDetail / 100.0) * 0.12;
+                float personThresh = 0.02 + u_shadowCutoff * 0.13 + (1.0 - u_shadowDetail / 100.0) * 0.1;
                 effectiveBlackThresh = mix(blackCrushThresh * 0.8, personThresh, personW);
             }
 
@@ -1009,6 +1038,7 @@
             // Tone tier inside the bright zone: lighter = base colour, darker = shade colour (cloud banks, castle)
             float scallop = (fbm(metricUV * vec2(9.0, 22.0)) - 0.5) * 0.10;
             float tierL = sculptedLuma + scallop;
+            if (u_engraveMode == 3) tierL -= (v_uv.y - 0.5) * 0.35;
             float skyThr = u_highCutoff + 0.09;
             float lightTier = smoothstep(skyThr - aa, skyThr + aa, tierL);
 
@@ -1029,6 +1059,11 @@
                 comp = mix(comp, fogCol, fMid);
                 comp = mix(comp, skySeg, fSky);
                 comp = mix(comp, u_colorHigh, fHigh);
+                vec3 darkFogCol = mix(u_colorMid, u_colorInk, 0.32);
+                vec3 darkSkyCol = mix(u_colorSky, u_colorSlate, 0.62);
+                comp = mix(comp, darkFogCol, fDark);
+                comp = mix(comp, darkSkyCol, fSky * cloudMask);
+                comp = mix(comp, darkFogCol, fMid * (1.0 - personW) * cloudMask * 0.85);
                 // Red rim-light shards are cut into walls only, never into the figure
                 comp = mix(comp, u_colorMid, shardTrigger * (1.0 - personW) * (1.0 - fSky));
             }
@@ -1548,12 +1583,12 @@
         // Detects sky, person, walls, buildings, water/fog... and feeds soft masks to the compositor.
         // ============================================================================
         const SEG = { enabled: true, busy: false, ready: false, items: [], tex0: null, tex1: null, lib: null, pipe: null, token: 0 };
-        const SEG_PL = { auto: -1, ink: 0, slate: 1, mid: 2, sky: 3, high: 4 };
-        const SEG_PL_NAMES = [['auto', 'Auto (tonalnie)'], ['ink', 'Tusz (czerń)'], ['slate', 'Łupek'], ['mid', 'Czerwień / mgła'], ['sky', 'Niebo'], ['high', 'Światło']];
-        const SEG_PL_BY_INDEX = { '-1': 'auto', 0: 'ink', 1: 'slate', 2: 'mid', 3: 'sky', 4: 'high' };
+        const SEG_PL = { auto: -1, ink: 0, slate: 1, mid: 2, sky: 3, high: 4, dark: 5 };
+        const SEG_PL_NAMES = [['auto', 'Auto (tonalnie)'], ['ink', 'Tusz (czerń)'], ['slate', 'Łupek'], ['mid', 'Czerwień / mgła'], ['sky', 'Niebo'], ['high', 'Światło'], ['dark', 'Ciemna czerwień (sylwetka)']];
+        const SEG_PL_BY_INDEX = { '-1': 'auto', 0: 'ink', 1: 'slate', 2: 'mid', 3: 'sky', 4: 'high', 5: 'dark' };
         const SEG_DEFAULTS = {
             sky: 'sky', wall: 'ink', fence: 'ink', rock: 'ink', stone: 'ink', floor: 'ink', earth: 'ink', road: 'ink', sidewalk: 'ink', path: 'ink', ground: 'ink', grass: 'ink', sand: 'ink',
-            building: 'mid', tower: 'mid', castle: 'mid', house: 'mid', skyscraper: 'mid', hovel: 'mid', mountain: 'mid', hill: 'mid', water: 'mid', sea: 'mid', river: 'mid', lake: 'mid', fog: 'mid',
+            building: 'dark', tower: 'dark', castle: 'dark', house: 'dark', skyscraper: 'dark', hovel: 'dark', mountain: 'dark', hill: 'dark', water: 'mid', sea: 'mid', river: 'mid', lake: 'mid', fog: 'mid',
             person: 'auto'
         };
         const SEG_PL_LABELS_PL = {
@@ -1737,7 +1772,7 @@
                     let key = SEG_DEFAULTS[s.label] || 'auto';
                     // Forcing a plate only where it matches the region's tone avoids wiping out bright or dark areas of other photos
                     if (key === 'ink' && mean > 0.38) key = 'auto';
-                    if (key === 'mid' && mean < 0.25) key = 'auto';
+                    if ((key === 'mid' || key === 'dark') && mean < 0.25) key = 'auto';
                     return { label: s.label, frac: s.frac, plate: SEG_PL[key] };
                 });
                 SEG.ready = true;
