@@ -1,0 +1,3552 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printone — Studio ilustracji plakatowej</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-rose: #f43f5e;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #07080c;
+            background-image: 
+                radial-gradient(circle at 12% 18%, rgba(152, 37, 36, 0.24) 0%, transparent 45%),
+                radial-gradient(circle at 88% 82%, rgba(80, 158, 201, 0.16) 0%, transparent 45%),
+                radial-gradient(circle at 50% 45%, rgba(127, 138, 28, 0.12) 0%, transparent 55%);
+            color: #f3f4f6;
+            overflow: hidden;
+        }
+
+        .font-display { font-family: 'Cinzel', serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Dark Glassmorphism System */
+        .glass-shell {
+            background: rgba(12, 14, 20, 0.78);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.075);
+            backdrop-filter: blur(12px);
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.045);
+        }
+
+        .glass-button {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            transition: all 0.18s ease;
+        }
+
+        .glass-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.07) 100%);
+            border-color: rgba(255, 255, 255, 0.32);
+            transform: translateY(-1px);
+        }
+
+        .glass-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .glass-button-primary {
+            background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 25px -4px rgba(225, 29, 72, 0.5);
+        }
+
+        .glass-button-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+            box-shadow: 0 12px 30px -4px rgba(244, 63, 94, 0.7);
+            transform: translateY(-1px);
+        }
+
+        /* Range Sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #0f172a;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: transform 0.12s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.22);
+        }
+
+        /* Color Input */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            padding: 0;
+            width: 100%;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 7px;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.35); }
+
+        .studio-bg {
+            background-color: #08090d;
+            background-image: 
+                linear-gradient(45deg, rgba(255,255,255,0.022) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(255,255,255,0.022) 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.022) 75%), 
+                linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.022) 75%);
+            background-size: 24px 24px;
+            background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
+        }
+
+        .preset-active {
+            border-color: rgba(244, 63, 94, 0.85) !important;
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.18) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.22);
+        }
+
+        :root {
+            color-scheme: dark;
+            --app-bg: #101216;
+            --panel-bg: #171a20;
+            --panel-raised: #1d2128;
+            --line: #2b3039;
+            --text: #e7e9ed;
+            --muted: #9ba2ad;
+            --accent: #d97757;
+            --accent-soft: rgba(217, 119, 87, .15);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            display: block !important;
+            padding: 0 !important;
+            color: var(--text);
+            background: var(--app-bg);
+            font-family: Inter, "Segoe UI", system-ui, sans-serif;
+            overflow: hidden;
+        }
+        .font-display, .font-mono { font-family: inherit; }
+        #appShell {
+            width: 100% !important;
+            max-width: none !important;
+            height: 100dvh !important;
+            border: 0;
+            border-radius: 0 !important;
+            background: var(--app-bg);
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        #appShell > aside {
+            width: 390px !important;
+            background: var(--panel-bg) !important;
+            border-color: var(--line) !important;
+        }
+        #appShell > aside > div:first-child {
+            min-height: 64px;
+            padding: 12px 18px !important;
+            background: #191c22;
+            border-color: var(--line) !important;
+        }
+        #appShell > aside > div:first-child h1 {
+            font-family: Inter, "Segoe UI", system-ui, sans-serif;
+            font-size: 15px !important;
+            letter-spacing: .12em;
+        }
+        #appShell > aside > div:first-child p {
+            font-size: 10px !important;
+            letter-spacing: .02em;
+            text-transform: none;
+        }
+        #appShell > aside > div:first-child > div:first-child > div:first-child {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--panel-raised);
+            box-shadow: none;
+        }
+        #appShell > aside > div:first-child > div:first-child > div:first-child > div {
+            background: var(--panel-raised);
+        }
+        #resolutionBadge {
+            font-size: 10px;
+            color: #c4c8cf;
+            background: #22262d;
+            border-color: var(--line);
+            border-radius: 6px;
+        }
+        #appShell > aside > div:nth-child(2) {
+            padding: 14px !important;
+            background: var(--panel-bg);
+            scrollbar-width: thin;
+        }
+        .glass-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--line);
+            border-radius: 9px !important;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        .glass-card:hover { background: var(--panel-bg); border-color: #3b424d; }
+        .glass-button {
+            color: var(--text);
+            background: #22262d;
+            border: 1px solid #343a44;
+            border-radius: 7px !important;
+            box-shadow: none;
+            transition: background .15s ease, border-color .15s ease;
+        }
+        .glass-button:hover:not(:disabled) {
+            background: #2a3038;
+            border-color: #59616e;
+            transform: none;
+            box-shadow: none;
+        }
+        .glass-button-primary {
+            background: #a74d36;
+            border: 1px solid #bd6249;
+            border-radius: 7px !important;
+            box-shadow: none;
+        }
+        .glass-button-primary:hover:not(:disabled) { background: #bc5b40; box-shadow: none; transform: none; }
+        #vectorizeBtn {
+            background: #303943 !important;
+            border: 1px solid #49535f !important;
+            box-shadow: none !important;
+        }
+        #vectorizeBtn:hover { background: #3a4651 !important; }
+        #appShell section {
+            padding: 14px !important;
+            border-color: var(--line) !important;
+            border-radius: 9px !important;
+        }
+        #appShell section h2 {
+            color: #e0e3e8;
+            font-size: 11px !important;
+            letter-spacing: .045em;
+            line-height: 1.4;
+        }
+        #appShell section h2 > span:first-child { width: 7px; height: 7px; }
+        #appShell section [class*="text-white/80"] { color: #c5cad2 !important; }
+        #appShell section [class*="text-white/50"] { color: var(--muted) !important; }
+        #appShell section [class*="text-white/45"] { color: var(--muted) !important; }
+        #appShell section [class*="text-white/55"] { color: var(--muted) !important; }
+        #appShell section [class*="text-white/85"] { color: #d7dbe1 !important; }
+        #appShell section .text-xs { font-size: 11px !important; }
+        #appShell section .text-\\[9px\\] { font-size: 10px !important; }
+        #appShell section .text-\\[10px\\] { font-size: 10px !important; }
+        #appShell section .text-\\[11px\\] { font-size: 11px !important; }
+        #appShell section input[type="range"] { margin: 3px 0 2px; }
+        input[type="range"] {
+            height: 4px;
+            background: #3a404a;
+            accent-color: var(--accent);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+            background: #e4a087;
+            border: 2px solid #252a31;
+            box-shadow: 0 0 0 1px #e4a087;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 11px;
+            height: 11px;
+            background: #e4a087;
+            border: 2px solid #252a31;
+            box-shadow: 0 0 0 1px #e4a087;
+        }
+        input[type="range"]:disabled { opacity: .4; cursor: not-allowed; }
+        input[type="color"] { height: 28px; }
+        .studio-bg {
+            background-color: #101216;
+            background-image:
+                linear-gradient(45deg, #171a1f 25%, transparent 25%),
+                linear-gradient(-45deg, #171a1f 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #171a1f 75%),
+                linear-gradient(-45deg, transparent 75%, #171a1f 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        }
+        .preset-active {
+            border-color: #cf795d !important;
+            background: #30231f !important;
+            box-shadow: inset 0 0 0 1px rgba(207,121,93,.16) !important;
+        }
+        #paletteGrid {
+            max-height: 244px;
+            overflow: auto;
+            padding: 1px 3px 1px 1px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            scrollbar-width: thin;
+        }
+        .palette-disclosure > summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 36px;
+            padding: 8px 10px;
+            color: #d7dbe1;
+            background: #20242b;
+            border: 1px solid #343a44;
+            border-radius: 7px;
+            cursor: pointer;
+            list-style: none;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .palette-disclosure > summary::-webkit-details-marker { display: none; }
+        .palette-disclosure[open] > summary { margin-bottom: 8px; border-color: #59616e; }
+        .palette-disclosure .palette-chevron { color: #9ba2ad; transition: transform .15s ease; }
+        .palette-disclosure[open] .palette-chevron { transform: rotate(180deg); }
+        .palette-card {
+            min-height: 68px;
+            padding: 9px !important;
+            gap: 5px !important;
+            background: #20242b;
+        }
+        .palette-card .palette-name {
+            font-size: 11px !important;
+            line-height: 1.25;
+            color: #e4e6ea !important;
+        }
+        .palette-card .palette-subtitle {
+            font-size: 9px !important;
+            line-height: 1.3;
+            color: #a8afb9 !important;
+        }
+        .palette-card .palette-swatches { display: flex; width: 100%; height: 7px; border-radius: 4px; overflow: hidden; }
+        .palette-card .palette-swatches span { flex: 1; border: 0 !important; border-radius: 0 !important; }
+        #engravingModeGroup { gap: 7px !important; }
+        .engrave-btn {
+            min-height: 68px;
+            padding: 10px !important;
+            background: #20242b;
+        }
+        .engrave-btn > div:first-child { font-size: 11px !important; color: #e4e6ea !important; }
+        .engrave-btn > div:last-child { margin-top: 4px; font-size: 10px !important; line-height: 1.35; color: #a8afb9 !important; }
+        .studio-bg #glCanvas {
+            max-width: min(94%, calc(100vw - 430px)) !important;
+            max-height: 86% !important;
+            border: 1px solid #555c66;
+            border-radius: 3px !important;
+            box-shadow: 0 16px 48px rgba(0,0,0,.45) !important;
+        }
+        #viewportContainer { cursor: grab; }
+        #viewportContainer:active { cursor: grabbing; }
+        #toastMessage { background: #242830; border-color: #414751; backdrop-filter: none; }
+        #emptyState {
+            position: absolute;
+            inset: 56px 20px 60px;
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            border: 1px dashed #3d444f;
+            border-radius: 10px;
+            background: rgba(18, 21, 26, .72);
+            text-align: center;
+            pointer-events: none;
+        }
+        #emptyState[hidden] { display: none; }
+        #emptyState .empty-state-card { max-width: 320px; padding: 24px; }
+        #emptyStateOpenBtn { pointer-events: auto; }
+        #processingIndicator {
+            position: absolute;
+            left: 50%;
+            bottom: 62px;
+            z-index: 25;
+            width: min(360px, calc(100% - 32px));
+            padding: 10px 12px;
+            transform: translateX(-50%);
+            color: #e7e9ed;
+            background: rgba(26, 29, 35, .96);
+            border: 1px solid #3b424d;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.3);
+            pointer-events: none;
+        }
+        #processingIndicator[hidden] { display: none; }
+        .progress-track { height: 3px; margin-top: 7px; overflow: hidden; background: #373d47; border-radius: 4px; }
+        #processingProgress { height: 100%; width: 0; background: #d97757; transition: width .2s ease; }
+        #processingProgress.indeterminate { width: 34%; animation: progress-slide 1.15s ease-in-out infinite alternate; }
+        @keyframes progress-slide { from { transform: translateX(0); } to { transform: translateX(195%); } }
+        @media (prefers-reduced-motion: reduce) { #processingProgress.indeterminate { animation: none; width: 70%; } }
+        :focus-visible { outline: 2px solid #e49a7d; outline-offset: 2px; }
+        @media (min-width: 761px) {
+            #appShell { flex-direction: row !important; }
+            #appShell > aside { height: 100% !important; min-height: 0; }
+            #appShell > main { height: 100% !important; min-height: 0; }
+        }
+        @media (max-width: 760px) {
+            body { overflow: auto; }
+            #appShell { height: auto !important; min-height: 100dvh; flex-direction: column !important; }
+            #appShell > aside { width: 100% !important; height: 54dvh !important; min-height: 360px; }
+            #appShell > main { height: 46dvh !important; min-height: 300px; }
+            #emptyState { inset: 8px; overflow: auto; }
+            #emptyState .empty-state-card { max-width: 100%; padding: 8px; }
+            #emptyState .empty-state-card > div:first-child { display: none; }
+            #emptyState .empty-state-card p { margin-top: 4px; }
+            #emptyStateOpenBtn { margin-top: 8px; }
+            .studio-bg #glCanvas { max-width: 90vw !important; max-height: 36dvh !important; }
+            #paletteGrid { max-height: 200px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex items-center justify-center p-2 sm:p-3 md:p-5 select-none">
+
+    <!-- Main Application Shell -->
+    <div id="appShell" class="glass-shell w-full max-w-[1680px] h-full rounded-3xl flex flex-col lg:flex-row overflow-hidden relative">
+        
+        <!-- LEFT PANEL: Engine Controls -->
+        <aside class="w-full lg:w-[430px] xl:w-[465px] h-[54vh] lg:h-full flex flex-col border-b lg:border-b-0 lg:border-r border-white/10 bg-black/35 z-20 shrink-0">
+            
+            <!-- Brand Header -->
+            <div class="px-5 py-3.5 border-b border-white/10 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 via-amber-500 to-emerald-600 p-[1px] shadow-lg">
+                        <div class="w-full h-full bg-[#0b0d13] rounded-[11px] flex items-center justify-center">
+                            <svg class="w-5 h-5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-display text-xl font-bold tracking-wider text-white leading-none">PRINT<span class="font-light text-rose-400">ONE</span></h1>
+                            <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">STUDIO</span>
+                        </div>
+                        <p class="text-[10px] text-white/50 tracking-wider uppercase mt-0.5">Ilustracja z ograniczoną paletą</p>
+                    </div>
+                </div>
+                <span id="resolutionBadge" class="text-[10px] font-mono text-white/70 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">1200 × 1800 px</span>
+            </div>
+
+            <!-- Scrollable Controls Container -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+                <!-- 1. Wgraj Zdjęcie / Sceny Testowe -->
+                <section class="glass-card rounded-2xl p-3.5 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Obraz źródłowy
+                        </h2>
+                        <span class="text-[10px] text-white/45">Obsługa 4K / 8K</span>
+                    </div>
+                    <div>
+                        <label class="glass-button col-span-2 py-2.5 px-4 rounded-xl text-center cursor-pointer font-medium text-xs flex items-center justify-center gap-2 text-white">
+                            <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            Otwórz obraz (JPG, PNG, WEBP)
+                            <input type="file" id="fileInput" accept="image/*" class="hidden">
+                        </label>
+                    </div>
+
+                    <div class="pt-2 border-t border-white/10">
+                        <button id="vectorizeBtn" class="w-full py-2 px-3 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-rose-600/90 via-amber-600/90 to-emerald-600/90 hover:from-rose-500 hover:to-emerald-500 border border-white/25 shadow-lg flex items-center justify-center gap-2 transition-all">
+                            <span aria-hidden="true">↗</span>
+                            <span>Zastosuj ustawienia komiksu</span>
+                        </button>
+                        <p class="text-[9px] text-white/45 mt-1 text-center">Ustawia mocniejsze wygładzanie, czerń i światła krawędziowe.</p>
+                    </div>
+                </section>
+
+                <!-- 2. Matryca Kolorów (5-Plate Graphic Novel & Tri-Tone System) -->
+                <section class="glass-card rounded-2xl p-3.5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span> Palety kolorów
+                        </h2>
+                        <div class="flex items-center gap-1">
+                            <button id="swapMidHighBtn" title="Zamień kolory płyty akcentu i nieba" class="glass-button px-2 py-1 rounded-lg text-[10px] text-white/90 flex items-center gap-1">
+                                <span>⇄</span> Mgła/Niebo
+                            </button>
+                            <button id="invertInkBtn" title="Zamień kolory tuszu i akcentu" class="glass-button px-2 py-1 rounded-lg text-[10px] text-white/90">
+                                Negatyw
+                            </button>
+                        </div>
+                    </div>
+
+                    <details id="paletteDisclosure" class="palette-disclosure">
+                        <summary>
+                            <span>Wybierz paletę</span>
+                            <span class="flex items-center gap-2">
+                                <span id="paletteCount" class="text-[10px] text-white/50">18 palet</span>
+                                <span class="palette-chevron" aria-hidden="true">⌄</span>
+                            </span>
+                        </summary>
+                        <div id="paletteGrid" class="grid grid-cols-2 gap-1.5"></div>
+                    </details>
+
+                    <!-- Custom 5-Color Plate Pickers -->
+                    <div class="pt-2 border-t border-white/10 grid grid-cols-5 gap-1.5">
+                        <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Najciemniejsza płyta — kontury i sylwetki">Tusz</label>
+                            <input type="color" id="colorInk" value="#05070a">
+                            <span id="hexInk" class="block text-[9px] font-mono text-center text-white/75 mt-1">#05070A</span>
+                        </div>
+                        <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Cienie pośrednie i fałdy">Cień</label>
+                            <input type="color" id="colorSlate" value="#0b2229">
+                            <span id="hexSlate" class="block text-[9px] font-mono text-center text-white/75 mt-1">#0B2229</span>
+                        </div>
+                        <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Płyta akcentu i mgły">Akcent</label>
+                            <input type="color" id="colorMid" value="#ff1e14">
+                            <span id="hexMid" class="block text-[9px] font-mono text-center text-white/75 mt-1">#FF1E14</span>
+                        </div>
+                        <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Kolor strefy nieba">Niebo</label>
+                            <input type="color" id="colorSky" value="#05889c">
+                            <span id="hexSky" class="block text-[9px] font-mono text-center text-white/75 mt-1">#05889C</span>
+                        </div>
+                        <div class="bg-black/40 p-1.5 rounded-xl border border-white/10">
+                            <label class="block text-[8px] uppercase tracking-wider text-white/55 mb-1 truncate" title="Najjaśniejsza płyta — wybrane światła">Światło</label>
+                            <input type="color" id="colorHigh" value="#d8e6eb">
+                            <span id="hexHigh" class="block text-[9px] font-mono text-center text-white/75 mt-1">#D8E6EB</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Architektura Silnika (Vector Cutout vs Woodcut) -->
+                <section class="glass-card rounded-2xl p-3.5 space-y-3">
+                    <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Styl ilustracji
+                    </h2>
+
+                    <div class="grid grid-cols-2 gap-1.5" id="engravingModeGroup">
+                        <button data-mode="0" class="engrave-btn preset-active glass-button p-2 rounded-xl text-left">
+                            <div class="text-[11px] font-semibold text-white">Komiks wektorowy</div>
+                            <div class="text-[9px] text-white/50">Kontury i osobne plamy tonalne</div>
+                        </button>
+                        <button data-mode="1" class="engrave-btn glass-button p-2 rounded-xl text-left">
+                            <div class="text-[11px] font-semibold text-white">Plakat noir split</div>
+                            <div class="text-[9px] text-white/50">Duże sylwetki i poziomy podział barw</div>
+                        </button>
+                        <button data-mode="2" class="engrave-btn glass-button p-2 rounded-xl text-left">
+                            <div class="text-[11px] font-semibold text-white">Drzeworyt</div>
+                            <div class="text-[9px] text-white/50">Włókniste kreskowanie wzdłuż form</div>
+                        </button>
+                        <button data-mode="3" class="engrave-btn glass-button p-2 rounded-xl text-left">
+                            <div class="text-[11px] font-semibold text-white">Rycina punktowa</div>
+                            <div class="text-[9px] text-white/50">Regularny raster półtonowy</div>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-white/10 pt-2">
+                        <span class="text-[10px] text-white/50">Przywróć parametry bieżącego stylu, zachowując kolory.</span>
+                        <button id="resetStyleBtn" type="button" class="glass-button shrink-0 px-2.5 py-1.5 text-[10px] font-medium" title="Przywróć domyślne parametry aktywnego stylu">Resetuj styl</button>
+                    </div>
+
+                    <!-- Wygładzanie szumu kamieni do płaskich plam wektorowych -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Wygładzanie faktury źródła</span>
+                            <span id="valFlowLength" class="font-mono text-emerald-300">90%</span>
+                        </div>
+                        <input type="range" id="paramFlowLength" aria-label="Wygładzanie faktury źródła" min="0" max="100" step="1" value="90">
+                        <p class="text-[9px] text-white/45">Więcej wygładzania upraszcza fakturę, zachowując większe formy.</p>
+                    </div>
+
+                    <!-- Ostre czerwone drzazgi światła na krawędziach murów (Rim-Light Shards) -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Światła krawędziowe</span>
+                            <span id="valCarveDepth" class="font-mono text-emerald-300">82%</span>
+                        </div>
+                        <input type="range" id="paramCarveDepth" aria-label="Intensywność świateł krawędziowych" min="0" max="100" step="1" value="82">
+                        <p class="text-[9px] text-white/45">Wzmacnia ostre akcenty przy kontrastowych krawędziach.</p>
+                    </div>
+
+                    <!-- Podział atmosferyczny nieba (Turkusowa góra vs Czerwona mgła) -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Podział nieba i kłęby chmur</span>
+                            <span id="valSkySplit" class="font-mono text-emerald-300">68%</span>
+                        </div>
+                        <input type="range" id="paramSkySplit" aria-label="Podział nieba i kłęby chmur" min="0" max="100" step="1" value="68">
+                        <p class="text-[9px] text-white/45">W trybie AI reguluje gęstość chmur; bez segmentacji przesuwa granicę nieba.</p>
+                    </div>
+                </section>
+
+                <!-- 4. Czarny Tusz, Kontury i Błyski (Oczy / Koszula / Ostrze) -->
+                <section class="glass-card rounded-2xl p-3.5 space-y-3">
+                    <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-sky-400"></span> Tusz i światła
+                    </h2>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Siła czerni i konturów</span>
+                            <span id="valInkWeight" class="font-mono text-sky-300">86%</span>
+                        </div>
+                        <input type="range" id="paramInkWeight" aria-label="Siła czerni i konturów" min="0" max="100" step="1" value="86">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Skala grubości konturu</span>
+                            <span id="valLineThickness" class="font-mono text-sky-300">1.5×</span>
+                        </div>
+                        <input type="range" id="paramLineThickness" aria-label="Skala grubości konturu" min="0.4" max="3.5" step="0.1" value="1.5">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Ochrona drobnych świateł</span>
+                            <span id="valSpecularPop" class="font-mono text-sky-300">88%</span>
+                        </div>
+                        <input type="range" id="paramSpecularPop" aria-label="Ochrona drobnych świateł" min="0" max="100" step="1" value="88">
+                        <p class="text-[9px] text-white/45">Zachowuje małe, jasne detale, np. oczy i metalowe krawędzie.</p>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Nieregularność kreski i rycia</span>
+                            <span id="valRaggedness" class="font-mono text-sky-300">12%</span>
+                        </div>
+                        <input type="range" id="paramRaggedness" aria-label="Nieregularność kreski i rycia" min="0" max="100" step="1" value="12">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Wpływ mapy głębi</span>
+                            <span id="valDepth" class="font-mono text-sky-300">70%</span>
+                        </div>
+                        <input type="range" id="paramDepth" aria-label="Wpływ mapy głębi" min="0" max="100" step="1" value="70">
+                        <p id="depthHelp" class="text-[9px] text-white/45">Steruje rozjaśnianiem odległego tła; aktywny po obliczeniu głębi AI.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Wygładzanie granic plam</span>
+                            <span id="valShapeSmooth" class="font-mono text-sky-300">60%</span>
+                        </div>
+                        <input type="range" id="paramShapeSmooth" aria-label="Wygładzanie granic plam" min="0" max="100" step="1" value="60">
+                        <p id="shapeSmoothHelp" class="text-[9px] text-white/45">Wygładza granice kolorowych obszarów w trybach komiksowych.</p>
+                    </div>
+                </section>
+
+                <!-- 5. Ekspozycja Płyt i Lokalny Kontrast -->
+                <section class="glass-card rounded-2xl p-3.5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-purple-400"></span> Ton i kontrast
+                        </h2>
+                        <button id="resetParamsBtn" type="button" class="glass-button px-2.5 py-1.5 text-[10px] font-medium">Resetuj do domyślnych</button>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Separacja ciemnych tonów</span>
+                            <span id="valShadowDetail" class="font-mono text-purple-300">74%</span>
+                        </div>
+                        <input type="range" id="paramShadowDetail" aria-label="Separacja ciemnych tonów" min="0" max="100" step="1" value="74">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Próg czerni</span>
+                            <span id="valShadowCutoff" class="font-mono text-purple-300">0.34</span>
+                        </div>
+                        <input type="range" id="paramShadowCutoff" aria-label="Próg czerni" min="0.08" max="0.70" step="0.01" value="0.34">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Próg jasnych płyt</span>
+                            <span id="valHighCutoff" class="font-mono text-purple-300">0.54</span>
+                        </div>
+                        <input type="range" id="paramHighCutoff" aria-label="Próg jasnych płyt" min="0.25" max="0.92" step="0.01" value="0.54">
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-white/10">
+                        <span class="text-xs text-white/80">Rytowana ramka ryciny (Woodblock Border)</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="paramFrame" class="sr-only peer">
+                            <div class="w-9 h-5 bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 5b. Segmentacja AI -->
+                <section class="glass-card rounded-2xl p-3.5 space-y-3 border-rose-500/30">
+                    <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> 5b. Segmentacja AI (elementy obrazu)
+                    </h2>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-white/80">Automatyczne rozpoznawanie elementów</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="segToggle" class="sr-only peer" checked>
+                            <div class="w-9 h-5 bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs text-white/80">Model analizy</span>
+                        <select id="segModel" class="bg-white/10 text-xs text-white/90 rounded-lg px-2 py-1 border border-white/15">
+                            <option value="Xenova/segformer-b2-finetuned-ade-512-512" data-mb="29" data-name="B2" class="text-black">B2 · 29 MB (szybki)</option>
+                            <option value="Xenova/segformer-b3-finetuned-ade-512-512" data-mb="50" data-name="B3" class="text-black">B3 · 50 MB</option>
+                            <option value="Xenova/segformer-b5-finetuned-ade-640-640" data-mb="90" data-name="B5" class="text-black">B5 · 90 MB (najlepszy)</option>
+                        </select>
+                    </div>
+                    <p id="segStatus" class="text-[10px] text-white/50 leading-snug">Model uruchomi się po wczytaniu obrazu.</p>
+                    <div id="segList" class="space-y-1.5"></div>
+                    <button id="segBtn" class="glass-button w-full py-2 px-3 rounded-xl text-xs font-semibold text-white/90">Wykryj elementy ponownie</button>
+                </section>
+                <section class="glass-card rounded-2xl p-3.5 space-y-3">
+                    <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-400"></span> Faktura druku
+                    </h2>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Raster półtonowy</span>
+                            <span id="valScreenToneAmount" class="font-mono text-amber-300">0%</span>
+                        </div>
+                        <input type="range" id="paramScreenToneAmount" aria-label="Raster półtonowy" min="0" max="100" step="1" value="0">
+                        <p class="text-[9px] text-white/45">Dodaje regulowane, okrągłe punkty tuszu we wszystkich stylach. 0% wyłącza raster.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Rozbryzg tuszu</span>
+                            <span id="valInkSplatter" class="font-mono text-amber-300">0%</span>
+                        </div>
+                        <input type="range" id="paramInkSplatter" aria-label="Rozbryzg tuszu" min="0" max="100" step="1" value="0">
+                        <p class="text-[9px] text-white/45">Nieregularne plamki tuszu o zmiennej wielkości; działa niezależnie od rastra i ziarna.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Ziarno papieru</span>
+                            <span id="valGrainAmount" class="font-mono text-amber-300">12%</span>
+                        </div>
+                        <input type="range" id="paramGrainAmount" aria-label="Ziarno papieru" min="0" max="100" step="1" value="12">
+                        <p class="text-[9px] text-white/45">Dodaje drobną, monochromatyczną fakturę do każdego stylu. 0% wyłącza efekt.</p>
+                    </div>
+                </section>
+                <!-- 6. Eksport w Pełnej Rozdzielczości -->
+                <section class="glass-card rounded-2xl p-3.5 space-y-3 border-rose-500/30">
+                    <h2 class="text-[11px] font-semibold uppercase tracking-wider text-white/85 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> Eksport
+                    </h2>
+
+                    <div class="space-y-2.5">
+                        <div>
+                            <label class="block text-[11px] text-white/70 mb-1">Format zapisu</label>
+                            <select id="formatSelect" class="w-full bg-black/60 border border-white/20 rounded-xl p-2 text-xs text-white font-medium focus:outline-none focus:border-rose-400">
+                                <option value="image/png">PNG — Bezstratna ostrość sitodruku (Zalecane)</option>
+                                <option value="image/jpeg">JPG — Skompresowany z wyborem jakości</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] text-white/70 mb-1">Rozmiar względem oryginału</label>
+                            <select id="exportScale" class="w-full bg-black/60 border border-white/20 rounded-xl p-2 text-xs text-white font-medium focus:outline-none focus:border-rose-400">
+                                <option value="0">1:1 — oryginalna rozdzielczość</option>
+                                <option value="2">2× — powiększenie</option>
+                                <option value="0.5">0.5× — połowa</option>
+                            </select>
+                        </div>
+                        <div id="qualityContainer" class="hidden bg-black/40 p-2.5 rounded-xl border border-white/10">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-white/80">Jakość kompresji JPG</span>
+                                <span id="qualityValue" class="font-mono text-rose-300">95%</span>
+                            </div>
+                            <input type="range" id="qualitySlider" min="0.10" max="1.00" step="0.01" value="0.95">
+                        </div>
+                    </div>
+
+                    <button id="downloadBtn" class="glass-button-primary w-full py-3 px-4 rounded-xl font-semibold text-xs text-white flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span id="downloadBtnText">Eksportuj w pełnej rozdzielczości</span>
+                    </button>
+                </section>
+
+            </div>
+        </aside>
+
+        <!-- RIGHT AREA: Interactive Studio Viewport (Zoom, Pan, Split Compare) -->
+        <main class="flex-1 h-[46vh] lg:h-full relative studio-bg flex flex-col items-center justify-center overflow-hidden">
+            
+            <!-- Top Floating HUD -->
+            <div class="absolute top-3.5 left-4 right-4 flex flex-wrap items-center justify-between gap-2 z-30 pointer-events-none">
+                <!-- Active Palette Indicator -->
+                <div class="glass-card px-3 py-1.5 rounded-full flex items-center gap-2.5 pointer-events-auto shadow-lg">
+                    <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                    <span id="activePaletteName" class="text-xs font-medium text-white/90">Crimson Alley (Strażnik)</span>
+                    <div class="flex items-center -space-x-1 ml-1">
+                        <span id="dotInk" class="w-3.5 h-3.5 rounded-full border border-white/40"></span>
+                        <span id="dotSlate" class="w-3.5 h-3.5 rounded-full border border-white/40"></span>
+                        <span id="dotMid" class="w-3.5 h-3.5 rounded-full border border-white/40"></span>
+                        <span id="dotSky" class="w-3.5 h-3.5 rounded-full border border-white/40"></span>
+                        <span id="dotHigh" class="w-3.5 h-3.5 rounded-full border border-white/40"></span>
+                    </div>
+                </div>
+
+                <!-- Zoom & Split Compare Controls -->
+                <div class="flex items-center gap-2 pointer-events-auto">
+                    <div class="glass-card px-2.5 py-1 rounded-full flex items-center gap-2">
+                        <span class="text-[11px] text-white/70">Przed / Po:</span>
+                        <input type="range" id="splitSlider" min="0" max="100" value="0" class="w-24">
+                        <span id="splitVal" class="text-[10px] font-mono text-white/80 w-7">0%</span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <button id="undoBtn" type="button" title="Cofnij (Ctrl+Z)" aria-label="Cofnij" disabled class="glass-button px-2 h-7 rounded-full text-[11px] disabled:opacity-40">↶ Cofnij</button>
+                        <button id="redoBtn" type="button" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów" disabled class="glass-button px-2 h-7 rounded-full text-[11px] disabled:opacity-40">↷</button>
+                    </div>
+
+                    <div class="glass-card px-1.5 py-1 rounded-full flex items-center gap-1">
+                        <button id="zoomOutBtn" title="Oddal" class="glass-button w-6 h-6 rounded-full text-xs flex items-center justify-center">-</button>
+                        <span id="zoomLabel" class="text-[11px] font-mono px-1.5 text-white/85">100%</span>
+                        <button id="zoomInBtn" title="Przybliż" class="glass-button w-6 h-6 rounded-full text-xs flex items-center justify-center">+</button>
+                        <button id="zoomResetBtn" class="glass-button px-2 h-6 rounded-full text-[10px] text-white/80">Fit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Canvas Viewport -->
+            <div id="viewportContainer" class="w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing relative">
+                <div id="emptyState">
+                    <div class="empty-state-card">
+                        <div class="text-2xl text-white/60 mb-2" aria-hidden="true">▧</div>
+                        <h2 class="text-sm font-semibold text-white/85">Otwórz zdjęcie, aby rozpocząć</h2>
+                        <p class="text-xs text-white/50 mt-2">Wybierz zdjęcie z panelu po lewej albo otwórz je bezpośrednio tutaj.</p>
+                        <button id="emptyStateOpenBtn" type="button" class="glass-button mt-4 px-4 py-2 rounded-lg text-xs font-medium text-white">Wybierz zdjęcie</button>
+                    </div>
+                </div>
+                <div id="canvasTransformWrapper" class="relative flex items-center justify-center transition-transform duration-75 ease-out" style="transform-origin: center center;">
+                    <canvas id="glCanvas" class="max-w-[92vw] lg:max-w-[calc(100vw-520px)] max-h-[40vh] lg:max-h-[86vh] object-contain rounded-lg shadow-[0_25px_80px_rgba(0,0,0,0.95)] border border-white/15"></canvas>
+                </div>
+            </div>
+            <div id="processingIndicator" role="status" aria-live="polite" hidden>
+                <div class="flex items-center justify-between gap-3">
+                    <span id="processingLabel" class="text-[11px]">Przygotowuję podgląd…</span>
+                    <span id="processingPercent" class="text-[10px] font-mono text-white/60"></span>
+                </div>
+                <div class="progress-track"><div id="processingProgress"></div></div>
+            </div>
+
+            <!-- Bottom Helper Hint -->
+            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-3.5 py-1 rounded-full text-[11px] text-white/60 pointer-events-none hidden sm:flex items-center gap-2">
+                <span>🖱️ Kółko myszy: Przybliż mikro-strukturę tuszu (100%+)</span>
+                <span>•</span>
+                <span>Przeciągnij: Przesuń widok</span>
+            </div>
+
+            <!-- Toast Message Box -->
+            <div id="toastMessage" class="fixed bottom-5 right-5 z-50 glass-shell px-4 py-2.5 rounded-2xl border border-white/20 text-xs text-white flex items-center gap-2.5 opacity-0 pointer-events-none transition-all duration-300 translate-y-2">
+                <span id="toastIcon" class="text-base">✨</span>
+                <span id="toastText">Gotowe</span>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================================================
+         4-PASS WEBGL 2.0 SHADER ARCHITECTURE:
+         Pass 1: Local Shadow Recovery + Scharr Structure Tensor
+         Pass 2: Gaussian Tensor Smoothing + Multi-Scale XDoG Ink Extraction
+         Pass 3: Flow-Guided Line Integral Convolution (LIC) & Domain-Warped Splatter
+         Pass 4: Sub-Pixel Crisp 3-Plate Screenprint & Woodblock Compositor
+         ============================================================================ -->
+
+    <script id="vsQuad" type="x-shader/x-vertex">#version 300 es
+        in vec2 a_position;
+        in vec2 a_texCoord;
+        out vec2 v_uv;
+        void main() {
+            gl_Position = vec4(a_position, 0.0, 1.0);
+            v_uv = a_texCoord;
+        }
+    </script>
+
+    <!-- PASS 1: EDGE-PRESERVING BILATERAL TEXTURE ANNIHILATOR & PINPOINT SPECULAR ISOLATION -->
+    <script id="fsPass1Tensor" type="x-shader/x-fragment">#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        out vec4 outColor;
+
+        uniform sampler2D u_sourceTex;
+        uniform vec2 u_texelSize;
+        uniform float u_shadowDetail;
+        uniform float u_flowLength; // Controls bilateral texture flattening power
+
+        float getLuma(vec3 c) {
+            return dot(c, vec3(0.299, 0.587, 0.114));
+        }
+
+        void main() {
+            vec3 centerRGB = texture(u_sourceTex, v_uv).rgb;
+            float centerL = getLuma(centerRGB);
+
+            // 1. Bilateral + Symmetric Kuwahara-Median Hybrid Filter:
+            // Destroys high-frequency stone/cobblestone noise while keeping macro silhouette edges razor-sharp
+            float radiusScale = 1.0 + u_flowLength * 2.8;
+            float sumL = 0.0;
+            float sumW = 0.0;
+            float localMin = 1.0;
+            float localMax = 0.0;
+
+            for (int j = -3; j <= 3; j++) {
+                for (int i = -3; i <= 3; i++) {
+                    vec2 offset = vec2(float(i), float(j)) * u_texelSize * radiusScale;
+                    vec3 sRGB = texture(u_sourceTex, v_uv + offset).rgb;
+                    float sL = getLuma(sRGB);
+
+                    localMin = min(localMin, sL);
+                    localMax = max(localMax, sL);
+
+                    // Spatial weight + Range weight (preserves strong silhouette boundaries, crushes stone noise)
+                    float dist2 = float(i * i + j * j);
+                    float dL = sL - centerL;
+                    float rangeSigma = 0.14 + u_flowLength * 0.18;
+                    float w = exp(-dist2 / 9.0) * exp(-(dL * dL) / (rangeSigma * rangeSigma));
+
+                    sumL += sL * w;
+                    sumW += w;
+                }
+            }
+
+            float flatLuma = sumL / max(sumW, 1e-5);
+
+            // 2. Pinpoint Specular & Glowing Eye Detector:
+            // Detects small, high-intensity bright features surrounded by darker areas (glowing eyes, blade edge, belt buckle, white shirt)
+            vec2 fineStep = u_texelSize * 2.0;
+            float ringLuma = (
+                getLuma(texture(u_sourceTex, v_uv + vec2( fineStep.x * 4.0, 0.0)).rgb) +
+                getLuma(texture(u_sourceTex, v_uv + vec2(-fineStep.x * 4.0, 0.0)).rgb) +
+                getLuma(texture(u_sourceTex, v_uv + vec2(0.0,  fineStep.y * 4.0)).rgb) +
+                getLuma(texture(u_sourceTex, v_uv + vec2(0.0, -fineStep.y * 4.0)).rgb)
+            ) * 0.25;
+
+            float maxCh = max(centerRGB.r, max(centerRGB.g, centerRGB.b));
+            float minCh = min(centerRGB.r, min(centerRGB.g, centerRGB.b));
+            float saturation = (maxCh > 0.01) ? (maxCh - minCh) / maxCh : 0.0;
+
+            // Specular = small bright feature that stands out from its WIDE surround (eyes, blade, buckle, shirt).
+            // Large bright areas (fog, sky) have a bright surround and are never flagged.
+            float wideSurround = 0.0;
+            float brightFrac = 0.0;
+            for (int k = 0; k < 8; k++) {
+                float a = float(k) * 0.7853982;
+                vec2 dir = vec2(cos(a), sin(a));
+                float s1 = getLuma(texture(u_sourceTex, v_uv + dir * 0.022).rgb);
+                float s2 = getLuma(texture(u_sourceTex, v_uv + dir * 0.048).rgb);
+                wideSurround += s1 + s2;
+                brightFrac += step(centerL - 0.12, s1) + step(centerL - 0.12, s2);
+            }
+            wideSurround /= 16.0;
+            brightFrac /= 16.0;
+            float localPeak = max(0.0, centerL - ringLuma);
+            float widePeak = max(0.0, centerL - wideSurround);
+            float specularScore = clamp(
+                smoothstep(0.10, 0.26, widePeak) * smoothstep(0.45, 0.72, centerL) * (1.0 - smoothstep(0.2, 0.5, brightFrac)) +
+                smoothstep(0.14, 0.35, localPeak) * smoothstep(0.45, 0.70, centerL) * 1.4,
+                0.0, 1.0
+            );
+            // 3. Scharr Gradient on the flattened macro luminance
+            vec2 d = u_texelSize * 1.5;
+            float tl = getLuma(texture(u_sourceTex, v_uv + vec2(-d.x, -d.y)).rgb);
+            float tm = getLuma(texture(u_sourceTex, v_uv + vec2( 0.0, -d.y)).rgb);
+            float tr = getLuma(texture(u_sourceTex, v_uv + vec2( d.x, -d.y)).rgb);
+            float ml = getLuma(texture(u_sourceTex, v_uv + vec2(-d.x,  0.0)).rgb);
+            float mr = getLuma(texture(u_sourceTex, v_uv + vec2( d.x,  0.0)).rgb);
+            float bl = getLuma(texture(u_sourceTex, v_uv + vec2(-d.x,  d.y)).rgb);
+            float bm = getLuma(texture(u_sourceTex, v_uv + vec2( 0.0,  d.y)).rgb);
+            float br = getLuma(texture(u_sourceTex, v_uv + vec2( d.x,  d.y)).rgb);
+
+            float gx = (3.0 * tr + 10.0 * mr + 3.0 * br - 3.0 * tl - 10.0 * ml - 3.0 * bl) / 16.0;
+            float gy = (3.0 * bl + 10.0 * bm + 3.0 * br - 3.0 * tl - 10.0 * tm - 3.0 * tr) / 16.0;
+
+            // Pack: R = gx, G = gy, B = Macro Flattened Luma, A = Specular / Eye / Blade Score
+            outColor = vec4(gx * 0.5 + 0.5, gy * 0.5 + 0.5, flatLuma, specularScore);
+        }
+    </script>
+
+    <!-- PASS 2: MORPHOLOGICAL BLACK CRUSH, RIM-LIGHT SHARD EXTRACTOR & CLEAN INK CONTOURS -->
+    <script id="fsPass2FlowAndXDoG" type="x-shader/x-fragment">#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        out vec4 outColor;
+
+        uniform sampler2D u_pass1Tex;
+        uniform vec2 u_texelSize;
+        uniform float u_lineThickness;
+        uniform float u_inkWeight;
+
+        void main() {
+            // 1. Second-stage Edge-Preserving Smoothing + Structure Tensor
+            float Jxx = 0.0, Jyy = 0.0, Jxy = 0.0, wSum = 0.0;
+            float centerLuma = texture(u_pass1Tex, v_uv).b;
+            float smoothLuma = 0.0;
+            float smoothW = 0.0;
+
+            // Track bright sky/fog proximity to project sharp Rim-Light Shards onto adjacent dark walls!
+            float brightHorizonProbe = 0.0;
+
+            for (int j = -2; j <= 2; j++) {
+                for (int i = -2; i <= 2; i++) {
+                    float w = exp(-float(i*i + j*j) / 4.5);
+                    vec4 s = texture(u_pass1Tex, v_uv + vec2(float(i), float(j)) * u_texelSize * 2.2);
+                    float gx = (s.r - 0.5) * 2.0;
+                    float gy = (s.g - 0.5) * 2.0;
+                    Jxx += w * gx * gx;
+                    Jyy += w * gy * gy;
+                    Jxy += w * gx * gy;
+                    wSum += w;
+
+                    float lDiff = s.b - centerLuma;
+                    float bw = w * exp(-(lDiff * lDiff) / 0.025);
+                    smoothLuma += s.b * bw;
+                    smoothW += bw;
+                }
+            }
+            Jxx /= wSum; Jyy /= wSum; Jxy /= wSum;
+            smoothLuma /= max(smoothW, 1e-5);
+
+            // Long-range horizontal/diagonal probe to detect if this dark wall pixel is near the bright central alley opening
+            for (int k = 1; k <= 6; k++) {
+                float dist = float(k) * 5.5;
+                float lRight = texture(u_pass1Tex, v_uv + vec2( dist * u_texelSize.x, -dist * 0.35 * u_texelSize.y)).b;
+                float lLeft  = texture(u_pass1Tex, v_uv + vec2(-dist * u_texelSize.x, -dist * 0.35 * u_texelSize.y)).b;
+                brightHorizonProbe = max(brightHorizonProbe, max(lRight, lLeft) * exp(-float(k) * 0.22));
+            }
+
+            // Principal tangent eigenvector
+            float trace = Jxx + Jyy;
+            float disc = sqrt(max((Jxx - Jyy) * (Jxx - Jyy) + 4.0 * Jxy * Jxy, 0.0));
+            float lambda1 = 0.5 * (trace + disc);
+            vec2 tangent = vec2(lambda1 - Jxx, -Jxy);
+            float tLen = length(tangent);
+            tangent = (tLen > 1e-5) ? (tangent / tLen) : vec2(0.25, 0.968);
+
+            // 2. Clean Graphic Novel Ink Contour (XDoG on smoothed macro planes so stone noise does NOT trigger lines)
+            vec2 stepFine = u_texelSize * u_lineThickness * 1.1;
+            vec2 stepWide = u_texelSize * u_lineThickness * 3.0;
+            float bFine = 0.0;
+            float bWide = 0.0;
+
+            vec2 dirs[8] = vec2[8](
+                vec2(1.0, 0.0), vec2(-1.0, 0.0), vec2(0.0, 1.0), vec2(0.0, -1.0),
+                vec2(0.707, 0.707), vec2(-0.707, 0.707), vec2(0.707, -0.707), vec2(-0.707, -0.707)
+            );
+            for (int k = 0; k < 8; k++) {
+                bFine += texture(u_pass1Tex, v_uv + dirs[k] * stepFine).b;
+                bWide += texture(u_pass1Tex, v_uv + dirs[k] * stepWide).b;
+            }
+            bFine = (bFine + smoothLuma * 2.0) / 10.0;
+            bWide = (bWide + smoothLuma) / 9.0;
+
+            // Only strong structural valleys become comic ink lines
+            float dogEdge = max(0.0, bWide - bFine);
+            float cleanInk = smoothstep(0.018, 0.055, dogEdge * (0.6 + u_inkWeight * 1.4));
+
+            // 3. Rim-Light Shard Signal:
+            // Strong vertical/steep ridges on dark walls that border the bright alley/fog get sliced into dramatic angular shards
+            float gradMag = sqrt(trace);
+            float rimCandidate = smoothstep(0.38, 0.62, brightHorizonProbe) * smoothstep(0.04, 0.18, gradMag + max(0.0, centerLuma - bWide) * 2.5);
+
+            // Pack: RG = Tangent Vector, B = Ultra-Clean Macro Luma, A = Clean Ink (low bits) + Rim Shard Signal
+            outColor = vec4(tangent * 0.5 + 0.5, smoothLuma, clamp(cleanInk * 0.75 + rimCandidate * 0.65, 0.0, 1.0));
+        }
+    </script>
+
+    <!-- PASS 3: VECTOR POSTERIZATION, ANGULAR RIM-LIGHT SHARDS & FLOW STREAMLINES -->
+    <script id="fsPass3LIC" type="x-shader/x-fragment">#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        out vec4 outColor;
+
+        uniform sampler2D u_pass1Tex;
+        uniform sampler2D u_pass2Tex;
+        uniform vec2 u_resolution;
+        uniform vec2 u_texelSize;
+        uniform float u_flowLength;
+        uniform float u_carveDepth; // Rim-Light Shard Intensity
+        uniform float u_raggedness;
+
+        float hash21(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        float valueNoise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+                mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),
+                mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x),
+                u.y
+            );
+        }
+
+        void main() {
+            float aspect = u_resolution.x / max(u_resolution.y, 1.0);
+            vec2 metricUV = vec2(v_uv.x * aspect, v_uv.y);
+
+            vec4 p1 = texture(u_pass1Tex, v_uv);
+            vec4 p2 = texture(u_pass2Tex, v_uv);
+            vec2 tangent = normalize((p2.rg - 0.5) * 2.0 + vec2(1e-5));
+
+            // Streamline integration (LIC) along forms to create long, vector-smooth comic folds (coat, castle, clouds)
+            float lumaAcc = p2.b;
+            float wAcc = 1.0;
+            vec2 posF = v_uv;
+            vec2 posB = v_uv;
+            float stepLen = 0.8 + u_flowLength * 2.0;
+
+            for (int s = 1; s <= 6; s++) {
+                float w = exp(-float(s * s) / 14.0);
+                posF += tangent * u_texelSize * stepLen;
+                posB -= tangent * u_texelSize * stepLen;
+
+                float lF = texture(u_pass2Tex, posF).b;
+                float lB = texture(u_pass2Tex, posB).b;
+
+                // Edge-stopping weight so dark coat never bleeds into bright fog
+                float wF = w * exp(-abs(lF - p2.b) * 14.0);
+                float wB = w * exp(-abs(lB - p2.b) * 14.0);
+
+                lumaAcc += lF * wF + lB * wB;
+                wAcc += wF + wB;
+            }
+            float vectorLuma = lumaAcc / wAcc;
+
+            // Geometric Rim-Light Shards (like the sharp red diagonal cuts on the black alley walls in the After image!)
+            // Creates steep, angular slash geometry near wall edges bordering the central light
+            float slashCoord = metricUV.x * 26.0 + (v_uv.x < 0.5 ? -1.0 : 1.0) * metricUV.y * 6.5;
+            float sawtooth = abs(fract(slashCoord) * 2.0 - 1.0);
+
+            // Check distance to the bright central canyon/corridor
+            float canyonEdge = 0.0;
+            for (int m = 1; m <= 7; m++) {
+                float dX = float(m) * 8.0 * u_texelSize.x;
+                float probeL = max(
+                    texture(u_pass2Tex, v_uv + vec2( dX, 0.0)).b,
+                    texture(u_pass2Tex, v_uv + vec2(-dX, 0.0)).b
+                );
+                canyonEdge = max(canyonEdge, smoothstep(0.46, 0.62, probeL) * (1.0 - float(m) / 8.5));
+            }
+
+            // Sharp angular shard mask where wall meets backlight
+            float wallGrad = length((p1.rg - 0.5) * 2.0);
+            float shardMask = step(0.52 - u_carveDepth * 0.36, sawtooth * 0.45 + wallGrad * 1.6) *
+                              canyonEdge *
+                              (1.0 - smoothstep(0.42, 0.52, vectorLuma)) *
+                              smoothstep(0.08, 0.92, v_uv.y) * u_carveDepth;
+
+            // Optional woodcut/stipple field for Modes 2 & 3
+            float woodcutField = valueNoise( vec2(dot(metricUV, tangent) * 45.0, dot(metricUV, vec2(-tangent.y, tangent.x)) * 135.0) );
+
+            // Output:
+            // R = Vector-Smoothed Macro Luma
+            // G = Specular / Glowing Eye / White Shirt / Blade Score (from Pass 1)
+            // B = Geometric Rim-Light Shard Mask
+            // A = Woodcut / Ink Contour Signal
+            outColor = vec4(vectorLuma, p1.a, clamp(shardMask, 0.0, 1.0), mix(p2.a, woodcutField, u_raggedness * 0.6));
+        }
+    </script>
+
+    <!-- PASS 4: 5-PLATE MIGNOLA GRAPHIC NOVEL & SCREENPRINT COMPOSITOR -->
+    <script id="fsPass4Compositor" type="x-shader/x-fragment">#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        out vec4 outColor;
+
+        uniform sampler2D u_pass3Tex;
+        uniform sampler2D u_sourceTex;
+        uniform vec2 u_resolution;
+
+        // 5 Graphic Novel Plates
+        uniform vec3 u_colorInk;     // Plate 1: Deep Black Silhouette (#05070a)
+        uniform vec3 u_colorSlate;   // Plate 2: Dark Coat / Slate Folds (#0b2229)
+        uniform vec3 u_colorMid;     // Plate 3: Crimson Fog / Castle / Rim Shards (#ff1e14)
+        uniform vec3 u_colorSky;     // Plate 4: Cyan Upper Sky / Atmosphere (#05889c)
+        uniform vec3 u_colorHigh;    // Plate 5: Specular White (Glowing Eyes, Shirt, Blade, Buckle) (#d8e6eb)
+
+        uniform int u_engraveMode;   // 0: Vector Graphic Novel, 1: Noir Poster Split, 2: Woodcut, 3: Stipple
+        uniform float u_carveDepth;
+        uniform float u_skySplit;
+        uniform sampler2D u_lutTex;
+        uniform float u_inkWeight;
+        uniform float u_specularPop;
+        uniform float u_raggedness;
+        uniform float u_shadowDetail;
+        uniform float u_shadowCutoff;
+        uniform float u_highCutoff;
+        uniform bool u_showFrame;
+        uniform float u_splitRatio;
+
+        // AI segmentation: 8 soft masks (2 RGBA textures), per-mask plate assignment and role
+        uniform sampler2D u_seg0;
+        uniform sampler2D u_seg1;
+        uniform float u_segOn;
+        uniform float u_segPlate[8]; // -1 auto, 0 ink, 1 slate, 2 mid, 3 sky, 4 high
+        uniform float u_segRole[8];  // 0 none, 1 person, 2 sky
+        uniform sampler2D u_depthTex; // AI monocular depth, 1 = near, 0 = far
+        uniform float u_depthAmt;     // 0 when depth is unavailable
+
+        float hash21(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        float valueNoise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+                mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),
+                mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x),
+                u.y
+            );
+        }
+
+        float fbm(vec2 p) {
+            float v = 0.0;
+            float a = 0.5;
+            for (int i = 0; i < 3; i++) {
+                v += a * valueNoise(p);
+                p = p * 2.05 + vec2(11.3, 5.7);
+                a *= 0.5;
+            }
+            return v;
+        }
+
+        void main() {
+            // Split-Screen Before/After Comparison
+            if (u_splitRatio > 0.001 && v_uv.x < u_splitRatio) {
+                vec3 orig = texture(u_sourceTex, v_uv).rgb;
+                float splitLine = smoothstep(0.0025, 0.0, abs(v_uv.x - u_splitRatio));
+                outColor = vec4(mix(orig, vec3(1.0, 0.15, 0.15), splitLine), 1.0);
+                return;
+            }
+
+            float aspect = u_resolution.x / max(u_resolution.y, 1.0);
+            vec2 metricUV = vec2(v_uv.x * aspect, v_uv.y);
+
+            vec4 p3 = texture(u_pass3Tex, v_uv);
+            float luma      = texture(u_lutTex, vec2(clamp(p3.r, 0.0, 1.0) * (255.0 / 256.0) + 0.5 / 256.0, 0.5)).r;
+            float specScore = p3.g;
+            float rimShard  = p3.b;
+            float texField  = p3.a;
+
+            // Joint-bilateral refinement of the coarse AI masks: they snap to real tonal edges of the photo
+            float fInk = 0.0, fSlate = 0.0, fMid = 0.0, fSky = 0.0, fHigh = 0.0, fDark = 0.0;
+            float personW = 0.0, skyW = 0.0;
+            if (u_segOn > 0.5) {
+                vec4 s0 = vec4(0.0), s1 = vec4(0.0);
+                float ws = 0.0;
+                for (int j = -2; j <= 2; j++) {
+                    for (int i = -2; i <= 2; i++) {
+                        vec2 off = vec2(float(i) / aspect, float(j)) * 0.0021;
+                        float l = texture(u_pass3Tex, v_uv + off).r;
+                        float w = exp(-(l - luma) * (l - luma) / 0.01) * exp(-float(i * i + j * j) / 6.0);
+                        s0 += texture(u_seg0, v_uv + off) * w;
+                        s1 += texture(u_seg1, v_uv + off) * w;
+                        ws += w;
+                    }
+                }
+                s0 = smoothstep(0.38, 0.62, s0 / ws);
+                s1 = smoothstep(0.38, 0.62, s1 / ws);
+                for (int i = 0; i < 8; i++) {
+                    float wi = (i < 4) ? s0[i] : s1[i - 4];
+                    float pl = u_segPlate[i];
+                    float role = u_segRole[i];
+                    if (role > 0.5 && role < 1.5) personW += wi;
+                    if (role > 1.5) skyW += wi;
+                    if (pl > -0.5 && pl < 0.5) fInk += wi;
+                    else if (pl > 0.5 && pl < 1.5) fSlate += wi;
+                    else if (pl > 1.5 && pl < 2.5) fMid += wi;
+                    else if (pl > 2.5 && pl < 3.5) fSky += wi;
+                    else if (pl > 3.5 && pl < 4.5) fHigh += wi;
+                    else if (pl > 4.5) fDark += wi;
+                }
+                personW = clamp(personW, 0.0, 1.0); skyW = clamp(skyW, 0.0, 1.0);
+                fInk = clamp(fInk, 0.0, 1.0); fSlate = clamp(fSlate, 0.0, 1.0); fMid = clamp(fMid, 0.0, 1.0);
+                fSky = clamp(fSky, 0.0, 1.0); fHigh = clamp(fHigh, 0.0, 1.0); fDark = clamp(fDark, 0.0, 1.0);
+            }
+
+            // Optional organic texture modulation ONLY when user increases Raggedness or selects Woodcut/Stipple modes
+            float grainMod = 0.0;
+            if (u_engraveMode == 2) {
+                grainMod = (texField - 0.5) * (0.25 + u_raggedness * 0.45);
+            } else {
+                // Organic edge modulation remains separate from the final paper grain and halftone.
+                grainMod = (fbm(metricUV * 38.0) - 0.5) * (u_raggedness * 0.18);
+            }
+
+            // Atmospheric perspective: distant land lifts toward the fog plates, near masses stay inked
+            float farness = 1.0 - texture(u_depthTex, v_uv).r;
+            float depthW = u_depthAmt * (1.0 - personW) * (1.0 - skyW);
+            luma += (farness - 0.5) * 0.34 * depthW;
+            float farRelease = depthW * smoothstep(0.55, 0.82, farness);
+            fInk *= 1.0 - farRelease;
+
+            // Ink reach: lit parts of "ink" regions are released to the other plates (red rim light on walls)
+            float inkLimit = u_shadowCutoff + 0.12 + u_inkWeight * 0.25;
+            fInk *= 1.0 - smoothstep(inkLimit, inkLimit + 0.06, luma) * (1.0 - personW);
+
+            // Scalloped cumulus banks: grouped circles, present only where low-frequency noise exceeds a threshold set by u_skySplit
+            vec2 cp = metricUV * vec2(11.0, 19.0);
+            vec2 ci = floor(cp), cf = fract(cp);
+            float cloudThr = 0.78 - u_skySplit * 0.42;
+            float puff = -1.0;
+            for (int cy = -1; cy <= 1; cy++) {
+                for (int cx = -1; cx <= 1; cx++) {
+                    for (int cn = 0; cn < 2; cn++) {
+                        vec2 g = vec2(float(cx), float(cy));
+                        float sd = float(cn) * 23.0;
+                        vec2 o = vec2(hash21(ci + g + sd), hash21(ci + g + 17.0 + sd));
+                        vec2 cc = (ci + g + 0.1 + o * 0.8) / vec2(11.0, 19.0);
+                        float pres = valueNoise(cc * vec2(4.5, 7.0) + 7.0) * 0.65 + valueNoise(cc * vec2(10.0, 15.0) + 3.0) * 0.35;
+                        if (pres > cloudThr) {
+                            float r = 0.30 + 0.22 * hash21(ci + g + 41.0 + sd);
+                            puff = max(puff, 1.0 - length((g + 0.1 + o * 0.8 - cf) * vec2(1.0, 1.7)) / r);
+                        }
+                    }
+                }
+            }            float cloudAa = max(fwidth(puff) * 0.8, 0.004);
+            float cloudMask = smoothstep(-cloudAa, cloudAa, puff);
+
+            float sculptedLuma = luma + grainMod;
+
+            // Razor-sharp sub-pixel anti-aliasing width (true vector look)
+            float aa = clamp(fwidth(sculptedLuma) * 0.65, 0.001, 0.006);
+
+            // --- PLATE 1 (Deep Black Ink) vs PLATE 2 (Dark Coat / Slate Folds) ---
+            // Crushes noisy stone walls into solid black, while separating mid-dark coat folds into Slate
+            float blackCrushThresh = u_shadowCutoff * (0.65 + u_inkWeight * 0.45);
+            float coatThresh       = u_shadowCutoff + (1.0 - u_shadowDetail / 100.0) * 0.14;
+
+            // In peripheral wall zones (left/right sides), crush harder to solid black like Mignola's comic panels
+            float wallZone = smoothstep(0.16, 0.42, abs(v_uv.x - 0.5));
+            float effectiveBlackThresh = mix(blackCrushThresh * 0.85, blackCrushThresh * 1.25, wallZone * u_inkWeight);
+            if (u_segOn > 0.5) {
+                // The detected person keeps its own tonal split (coat folds = slate); everything else is crushed to ink
+                float personThresh = 0.02 + u_shadowCutoff * 0.13 + (1.0 - u_shadowDetail / 100.0) * 0.1;
+                effectiveBlackThresh = mix(blackCrushThresh * 0.8, personThresh, personW);
+            }
+
+            float isSlateCoat = smoothstep(effectiveBlackThresh - aa, effectiveBlackThresh + aa, sculptedLuma);
+
+            // --- PLATE 3/4: bright background = crimson fog, upper atmosphere = cyan sky ---
+            float cloudWave = (fbm(vec2(metricUV.x * 4.5, metricUV.y * 11.0)) - 0.35) * 0.14;
+            float skyHorizon = 1.0 - u_skySplit * 0.58;
+            float inSky = step(0.01, u_skySplit) * smoothstep(skyHorizon - 0.012, skyHorizon + 0.012, v_uv.y + cloudWave);
+            if (u_segOn > 0.5) inSky = skyW;
+
+            // Inside the sky zone the threshold drops so that dark clouds and the castle are kept as shapes
+            float hiThr = u_highCutoff - 0.11 * inSky;
+            float isBright = smoothstep(hiThr - aa, hiThr + aa, sculptedLuma);
+            float shardTrigger = step(0.45, rimShard);
+            float isFogOrCastle = max(isBright, shardTrigger);
+
+            // Tone tier inside the bright zone: lighter = base colour, darker = shade colour (cloud banks, castle)
+            float scallop = (fbm(metricUV * vec2(9.0, 22.0)) - 0.5) * 0.10;
+            float tierL = sculptedLuma + scallop;
+            if (u_engraveMode == 3) tierL -= (v_uv.y - 0.5) * 0.35;
+            float skyThr = u_highCutoff + 0.09;
+            float lightTier = smoothstep(skyThr - aa, skyThr + aa, tierL);
+
+            vec3 fogCol = mix(mix(u_colorMid, u_colorInk, 0.32), u_colorMid, lightTier);
+            float upperSky = (u_segOn > 0.5) ? 1.0 : smoothstep(0.64, 0.76, v_uv.y);
+            vec3 darkSky = mix(mix(u_colorSky, u_colorSlate, 0.62), mix(u_colorMid, u_colorInk, 0.10), 1.0 - upperSky);
+            vec3 skyCol = mix(darkSky, u_colorSky, lightTier);
+
+            vec3 bgColor = mix(fogCol, skyCol, inSky * (1.0 - shardTrigger));
+
+            vec3 comp = mix(u_colorInk, u_colorSlate, isSlateCoat);
+            comp = mix(comp, bgColor, isFogOrCastle);
+
+            if (u_segOn > 0.5) {
+                vec3 skySeg = mix(mix(u_colorSky, u_colorSlate, 0.62), u_colorSky, lightTier);
+                comp = mix(comp, u_colorInk, fInk);
+                comp = mix(comp, u_colorSlate, fSlate);
+                comp = mix(comp, fogCol, fMid);
+                comp = mix(comp, skySeg, fSky);
+                comp = mix(comp, u_colorHigh, fHigh);
+                vec3 darkFogCol = mix(u_colorMid, u_colorInk, 0.32);
+                vec3 darkSkyCol = mix(u_colorSky, u_colorSlate, 0.62);
+                comp = mix(comp, darkFogCol, fDark);
+                comp = mix(comp, darkSkyCol, fSky * cloudMask);
+                comp = mix(comp, darkFogCol, fMid * (1.0 - personW) * cloudMask * 0.85);
+                // Red rim-light shards are cut into walls only, never into the figure
+                comp = mix(comp, u_colorMid, shardTrigger * (1.0 - personW) * (1.0 - fSky));
+            }
+
+            // Noir Split uses broad, hard-edged horizontal color fields on the outer scene,
+            // while preserving the central subject and its already-composited tonal detail.
+            if (u_engraveMode == 1) {
+                float splitHorizon = 1.0 - u_skySplit * 0.58;
+                float upperPanel = step(splitHorizon, v_uv.y);
+                float panelTone = smoothstep(blackCrushThresh, hiThr, sculptedLuma);
+                vec3 panelColor = mix(u_colorMid, u_colorSky, upperPanel);
+                vec3 panel = mix(u_colorInk, panelColor, panelTone);
+                float subjectKeep = clamp(personW + fHigh * 0.7 + fSlate * 0.35, 0.0, 1.0);
+                float sidePanel = smoothstep(0.20, 0.43, abs(v_uv.x - 0.5)) * (1.0 - subjectKeep);
+                comp = mix(comp, panel, sidePanel);
+            }
+
+            // --- PLATE 5: PINPOINT SPECULAR HIGHLIGHTS (Glowing Eyes, White Shirt, Knife Blade, Belt Buckle) ---
+            // Specifically targets high-contrast focal highlights in the central figure region
+            float centerFocus = 1.0 - smoothstep(0.18, 0.42, abs(v_uv.x - 0.5));
+            if (u_segOn > 0.5) centerFocus = 0.45 + 0.55 * personW;
+            float specThresh = 1.05 - (u_specularPop / 100.0) * 0.58;
+            float isSpecular = smoothstep(specThresh - 0.02, specThresh + 0.02, specScore * (0.55 + 0.65 * centerFocus));
+
+            // Glowing white eyes under the dark hood: high local peak inside upper-middle figure zone
+            comp = mix(comp, u_colorHigh, isSpecular);
+
+            // Clean Comic Ink Outlines on internal figure details (shirt collar, straps, coat lapels)
+            if (u_engraveMode <= 1) {
+                float internalEdge = smoothstep(0.58, 0.72, texField) * (1.0 - isFogOrCastle * 0.7);
+                comp = mix(comp, u_colorInk, internalEdge * u_inkWeight * 0.65);
+            }
+
+            outColor = vec4(clamp(comp, 0.0, 1.0), 1.0);
+        }
+    </script>
+
+
+    <!-- PASS 5: shape regularisation. Turns the plate map into clean, smooth, vector-like regions:
+         every pixel votes for its nearest palette plate in a neighbourhood, the winner takes the pixel,
+         and the border between the two strongest plates is anti-aliased. -->
+    <script id="fsPass5Shapes" type="x-shader/x-fragment">#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        out vec4 outColor;
+        uniform sampler2D u_tex;
+        uniform vec2 u_resolution;
+        uniform float u_smooth;
+        uniform vec3 u_pal[7];
+        uniform int u_showFrame;
+        uniform float u_splitRatio;
+        uniform float u_screenToneAmount;
+        uniform float u_inkSplatter;
+        uniform float u_grainAmount;
+
+        float hash21(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        float valueNoise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+                mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),
+                mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x),
+                u.y
+            );
+        }
+
+        int nearestPlate(vec3 c) {
+            int best = 0; float bd = 1e9;
+            for (int k = 0; k < 7; k++) {
+                vec3 d = c - u_pal[k];
+                float dd = dot(d, d);
+                if (dd < bd) { bd = dd; best = k; }
+            }
+            return best;
+        }
+
+        void main() {
+            vec3 comp = texture(u_tex, v_uv).rgb;
+            if (u_smooth > 0.01) {
+                float px = max(u_resolution.x, u_resolution.y) / 1400.0;
+                float stride = (0.45 + u_smooth * 1.9) * px;
+                float w[7];
+                for (int k = 0; k < 7; k++) w[k] = 0.0;
+                for (int j = -3; j <= 3; j++) {
+                    for (int i = -3; i <= 3; i++) {
+                        float g = exp(-float(i * i + j * j) / 7.0);
+                        vec3 c = texture(u_tex, v_uv + vec2(float(i), float(j)) * stride / u_resolution).rgb;
+                        w[nearestPlate(c)] += g;
+                    }
+                }
+                // Small bright accents (eyes, blade, buckle) must survive the vote
+                w[4] *= 2.6;
+                int b1 = 0;
+                for (int k = 1; k < 7; k++) if (w[k] > w[b1]) b1 = k;
+                int b2 = (b1 == 0) ? 1 : 0;
+                for (int k = 0; k < 7; k++) if (k != b1 && w[k] > w[b2]) b2 = k;
+                float tot = max(w[0] + w[1] + w[2] + w[3] + w[4] + w[5] + w[6], 1e-4);
+                float t = smoothstep(0.0, 0.10, (w[b1] - w[b2]) / tot);
+                comp = mix(u_pal[b2], u_pal[b1], 0.5 + 0.5 * t);
+            }
+
+            float aspect = u_resolution.x / max(u_resolution.y, 1.0);
+            if (u_showFrame == 1) {
+                vec2 edgeDist = min(v_uv, 1.0 - v_uv);
+                float d = min(edgeDist.x * aspect, edgeDist.y);
+                if (d < 0.016) comp = u_pal[0];
+                else if (d > 0.020 && d < 0.023) comp = u_pal[2];
+            }
+            if (u_splitRatio > 0.001) {
+                float splitLine = smoothstep(0.0025, 0.0, abs(v_uv.x - u_splitRatio));
+                comp = mix(comp, vec3(1.0, 0.15, 0.15), splitLine);
+            }
+            vec2 metricUV = vec2(v_uv.x * aspect, v_uv.y);
+            vec2 screenUV = mat2(0.7071, -0.7071, 0.7071, 0.7071) * metricUV * u_resolution.y * 0.075;
+            float screenCell = 0.5 + 0.5 * cos(screenUV.x * 6.2832) * cos(screenUV.y * 6.2832);
+            float tone = dot(comp, vec3(0.2126, 0.7152, 0.0722));
+            float dotThreshold = mix(0.94, 0.05, tone);
+            float screenDot = smoothstep(dotThreshold - 0.06, dotThreshold + 0.06, screenCell);
+            comp = mix(comp, u_pal[0], screenDot * (u_screenToneAmount / 100.0) * 0.85);
+            if (u_inkSplatter > 0.01) {
+                float smallSplatter = valueNoise(metricUV * u_resolution.y * 0.16 + vec2(17.2, 4.8));
+                float largeSplatter = valueNoise(metricUV * u_resolution.y * 0.045 + vec2(31.7, 9.3));
+                float droplets = smoothstep(0.72, 0.91, smallSplatter) * smoothstep(0.32, 0.62, largeSplatter);
+                float paperExposure = smoothstep(0.08, 0.72, tone);
+                comp = mix(comp, u_pal[0], droplets * paperExposure * (u_inkSplatter / 100.0) * 0.92);
+            }
+            float paperNoise = valueNoise(metricUV * u_resolution.y * 0.55 + vec2(3.1, 7.7)) - 0.5;
+            comp *= 1.0 + paperNoise * (u_grainAmount / 100.0) * 0.36;
+            outColor = vec4(clamp(comp, 0.0, 1.0), 1.0);
+        }
+    </script>
+    <!-- ============================================================================
+         APPLICATION CONTROLLER, AI SEMANTIC RESTYLE & PROCEDURAL GUARDIAN SCENE
+         ============================================================================ -->
+    <script>
+        function palettePreset(engraveMode, grainAmount, overrides = {}) {
+            const textured = engraveMode === 2 || engraveMode === 3;
+            return {
+                engraveMode,
+                flowLength: textured ? 80 : 91,
+                carveDepth: engraveMode === 0 ? 82 : (engraveMode === 1 ? 64 : 48),
+                skySplit: 62,
+                inkWeight: 86,
+                lineThickness: 1.5,
+                specularPop: 82,
+                raggedness: engraveMode === 2 ? 56 : (engraveMode === 3 ? 42 : 14),
+                screenToneAmount: engraveMode === 3 ? 68 : 0,
+                inkSplatter: engraveMode === 2 ? 12 : (engraveMode === 3 ? 6 : 0),
+                inkSplatterAmount: engraveMode === 2 ? 12 : (engraveMode === 3 ? 6 : 0),
+                grainAmount,
+                shapeSmooth: textured ? 0 : 58,
+                depthAmt: 65,
+                shadowDetail: 74,
+                shadowCutoff: 0.36,
+                highCutoff: 0.60,
+                showFrame: engraveMode === 2,
+                ...overrides
+            };
+        }
+
+        // Five-plate palettes with presets tuned for the palette's intended print treatment.
+        const PRINTONE_PALETTES = [
+            {
+                id: 'crimson_alley',
+                name: 'Crimson Alley (Strażnik)',
+                subtitle: 'Domyślny • Czerń, Czerwona Mgła i Turkus',
+                ink: '#05070a',
+                slate: '#0b2229',
+                mid: '#ff1e14',
+                sky: '#05889c',
+                high: '#d8e6eb',
+                preset: {
+                    engraveMode: 0, flowLength: 92, carveDepth: 84, skySplit: 68,
+                    inkWeight: 88, lineThickness: 1.5, specularPop: 90, raggedness: 8,
+                    shadowDetail: 76, shadowCutoff: 0.34, highCutoff: 0.54, showFrame: false, grainAmount: 12, shapeSmooth: 60, screenToneAmount: 0, inkSplatter: 0
+                }
+            },
+            {
+                id: 'cclvii_moss',
+                name: 'CCLVII Moss & Iron',
+                subtitle: 'Ref #1 • Rogaty Rycerz w Lesie',
+                ink: '#1c1610',
+                slate: '#2f3410',
+                mid: '#525b16',
+                sky: '#6b7519',
+                high: '#848f1c',
+                preset: {
+                    engraveMode: 2, flowLength: 80, carveDepth: 74, skySplit: 0,
+                    inkWeight: 86, lineThickness: 1.5, specularPop: 65, raggedness: 64,
+                    shadowDetail: 72, shadowCutoff: 0.38, highCutoff: 0.64, showFrame: true, grainAmount: 24, shapeSmooth: 0, screenToneAmount: 0, inkSplatter: 12
+                }
+            },
+            {
+                id: 'coming_dawn',
+                name: 'Coming of the Dawn',
+                subtitle: 'Ref #2 • Szkielet, Krew i Kość',
+                ink: '#100f10',
+                slate: '#2d1414',
+                mid: '#942220',
+                sky: '#6b1918',
+                high: '#dfd7cc',
+                preset: {
+                    engraveMode: 2, flowLength: 82, carveDepth: 78, skySplit: 25,
+                    inkWeight: 88, lineThickness: 1.4, specularPop: 82, raggedness: 58,
+                    shadowDetail: 75, shadowCutoff: 0.39, highCutoff: 0.66, showFrame: true, grainAmount: 28, shapeSmooth: 0, screenToneAmount: 0, inkSplatter: 12
+                }
+            },
+            {
+                id: 'azure_exec',
+                name: 'Azure Execution',
+                subtitle: 'Ref #3 • Karmazyn, Czerń i Błękit',
+                ink: '#080c11',
+                slate: '#132636',
+                mid: '#982524',
+                sky: '#982524',
+                high: '#509ec9',
+                preset: {
+                    engraveMode: 0, flowLength: 88, carveDepth: 76, skySplit: 0,
+                    inkWeight: 85, lineThickness: 1.7, specularPop: 85, raggedness: 22,
+                    shadowDetail: 70, shadowCutoff: 0.36, highCutoff: 0.62, showFrame: false, grainAmount: 12, shapeSmooth: 58, screenToneAmount: 0, inkSplatter: 0
+                }
+            },
+            {
+                id: 'pink_eclipse',
+                name: 'Pink Eclipse',
+                subtitle: 'Ref #4 • Różowe Słońce i Popiół',
+                ink: '#16151e',
+                slate: '#2f313b',
+                mid: '#93979e',
+                sky: '#ff89b5',
+                high: '#ff9ec2',
+                preset: {
+                    engraveMode: 3, flowLength: 74, carveDepth: 72, skySplit: 55,
+                    inkWeight: 86, lineThickness: 1.5, specularPop: 80, raggedness: 68,
+                    shadowDetail: 70, shadowCutoff: 0.37, highCutoff: 0.65, showFrame: false, grainAmount: 18, shapeSmooth: 0, screenToneAmount: 74, inkSplatter: 6
+                }
+            },
+            {
+                id: 'hellboy_pulp',
+                name: 'Mignola Pulp Gold',
+                subtitle: 'Komiks • Czerń, Szkarłat i Złoty Błysk',
+                ink: '#070606',
+                slate: '#24181c',
+                mid: '#d92b2b',
+                sky: '#e89923',
+                high: '#fff3d6',
+                preset: {
+                    engraveMode: 0, flowLength: 94, carveDepth: 85, skySplit: 60,
+                    inkWeight: 90, lineThickness: 1.6, specularPop: 90, raggedness: 5,
+                        shadowDetail: 78, shadowCutoff: 0.35, highCutoff: 0.56, showFrame: false, grainAmount: 8, shapeSmooth: 60, screenToneAmount: 0, inkSplatter: 0
+                    }
+                },
+                {
+                    id: 'copper_night',
+                    name: 'Copper Night',
+                    subtitle: 'Noir split · miedź i atrament',
+                    ink: '#101318', slate: '#2a2527', mid: '#bd583e', sky: '#527b82', high: '#f0d7b5',
+                    preset: palettePreset(1, 16, { skySplit: 66, shadowCutoff: 0.38, highCutoff: 0.62, showFrame: true })
+                },
+                {
+                    id: 'petrol_coral',
+                    name: 'Petrol & Coral',
+                    subtitle: 'Komiks · morski turkus i koral',
+                    ink: '#10191b', slate: '#254044', mid: '#ed735c', sky: '#187e83', high: '#f5e4cc',
+                    preset: palettePreset(0, 10, { skySplit: 64, carveDepth: 82, showFrame: false })
+                },
+                {
+                    id: 'boneprint',
+                    name: 'Boneprint',
+                    subtitle: 'Drzeworyt · kość i sadza',
+                    ink: '#171512', slate: '#474038', mid: '#a27a55', sky: '#c4b397', high: '#f1e7d4',
+                    preset: palettePreset(2, 30, { raggedness: 68, carveDepth: 34, showFrame: true })
+                },
+                {
+                    id: 'midnight_bloom',
+                    name: 'Midnight Bloom',
+                    subtitle: 'Półton · śliwka i magneta',
+                    ink: '#17131d', slate: '#393042', mid: '#925278', sky: '#e080a5', high: '#f5c9d6',
+                    preset: palettePreset(3, 16, { raggedness: 62, skySplit: 58, showFrame: false })
+                },
+                {
+                    id: 'alpine_cyan',
+                    name: 'Alpine Cyan',
+                    subtitle: 'Noir split · lodowy błękit',
+                    ink: '#101720', slate: '#283a48', mid: '#b55c4d', sky: '#4b9db1', high: '#d8e9e9',
+                    preset: palettePreset(1, 12, { skySplit: 58, shadowCutoff: 0.34, showFrame: false })
+                },
+                {
+                    id: 'saffron_archive',
+                    name: 'Saffron Archive',
+                    subtitle: 'Drzeworyt · ochra i papier',
+                    ink: '#20170f', slate: '#49351f', mid: '#a7482c', sky: '#cf8c36', high: '#f4dfaa',
+                    preset: palettePreset(2, 26, { raggedness: 58, carveDepth: 42, showFrame: true })
+                },
+                {
+                    id: 'oxide_paper',
+                    name: 'Oxide & Paper',
+                    subtitle: 'Komiks · rdza, granat i papier',
+                    ink: '#17191d', slate: '#343a43', mid: '#b54835', sky: '#486f83', high: '#e8d8bd',
+                    preset: palettePreset(0, 14, { skySplit: 62, shadowDetail: 78, showFrame: false })
+                },
+                {
+                    id: 'ultraviolet',
+                    name: 'Ultraviolet',
+                    subtitle: 'Półton · indygo i cytryna',
+                    ink: '#15151e', slate: '#30344c', mid: '#7257a3', sky: '#c17ba6', high: '#f0d873',
+                    preset: palettePreset(3, 20, { raggedness: 48, skySplit: 56, showFrame: false })
+                },
+                {
+                    id: 'pine_ink',
+                    name: 'Pine Ink',
+                    subtitle: 'Komiks · sosna i ciepła kość',
+                    ink: '#121a17', slate: '#263b32', mid: '#8b5638', sky: '#58826c', high: '#e9dfc5',
+                    preset: palettePreset(0, 18, { skySplit: 68, shadowCutoff: 0.37, showFrame: false })
+                },
+                {
+                    id: 'dust_cobalt',
+                    name: 'Dust & Cobalt',
+                    subtitle: 'Noir split · pył i kobalt',
+                    ink: '#11151b', slate: '#303640', mid: '#bd6547', sky: '#426fa5', high: '#e7d3b2',
+                    preset: palettePreset(1, 14, { skySplit: 70, highCutoff: 0.58, showFrame: true })
+                },
+                {
+                    id: 'crimson_bone',
+                    name: 'Crimson Bone',
+                    subtitle: 'Drzeworyt · czerwień i kość',
+                    ink: '#1b1415', slate: '#493035', mid: '#b7353b', sky: '#9a6f69', high: '#f0dfc9',
+                    preset: palettePreset(2, 34, { raggedness: 64, carveDepth: 38, showFrame: true })
+                },
+                {
+                    id: 'neon_abyss',
+                    name: 'Neon Abyss',
+                    subtitle: 'Komiks · elektryczny błękit',
+                    ink: '#10131b', slate: '#252d45', mid: '#d64b57', sky: '#317fd0', high: '#a9eff0',
+                    preset: palettePreset(0, 8, { skySplit: 60, carveDepth: 88, highCutoff: 0.57, showFrame: false })
+                }
+        ];
+
+        const STYLE_DEFAULTS = [
+                palettePreset(0, 12, { flowLength: 92, carveDepth: 82, inkWeight: 88, raggedness: 12, shapeSmooth: 60, showFrame: false }),
+                palettePreset(1, 16, { flowLength: 88, carveDepth: 58, skySplit: 64, inkWeight: 90, raggedness: 16, shapeSmooth: 50, showFrame: true }),
+                palettePreset(2, 26, { flowLength: 80, carveDepth: 42, raggedness: 60, shapeSmooth: 0, showFrame: true }),
+                palettePreset(3, 18, { flowLength: 76, carveDepth: 36, raggedness: 54, shapeSmooth: 0, showFrame: false })
+        ];
+
+        // Engine State
+        const state = {
+            activePaletteId: 'crimson_alley',
+            colorInk: '#05070a',
+            colorSlate: '#0b2229',
+            colorMid: '#ff1e14',
+            colorSky: '#05889c',
+            colorHigh: '#d8e6eb',
+            engraveMode: 0,
+            flowLength: 92,
+            carveDepth: 84,
+            skySplit: 68,
+            inkWeight: 88,
+            lineThickness: 1.5,
+            specularPop: 90,
+            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70,
+            shadowDetail: 76,
+            shadowCutoff: 0.34,
+            highCutoff: 0.54,
+            showFrame: false,
+            splitRatio: 0.0,
+            fileName: 'mroczny_straznik'
+        };
+
+        // DOM References
+        const glCanvas = document.getElementById('glCanvas');
+        const fileInput = document.getElementById('fileInput');
+        const resolutionBadge = document.getElementById('resolutionBadge');
+        const paletteGrid = document.getElementById('paletteGrid');
+        const activePaletteName = document.getElementById('activePaletteName');
+
+        const colorInkInput = document.getElementById('colorInk');
+        const colorSlateInput = document.getElementById('colorSlate');
+        const colorMidInput = document.getElementById('colorMid');
+        const colorSkyInput = document.getElementById('colorSky');
+        const colorHighInput = document.getElementById('colorHigh');
+
+        const hexInk = document.getElementById('hexInk');
+        const hexSlate = document.getElementById('hexSlate');
+        const hexMid = document.getElementById('hexMid');
+        const hexSky = document.getElementById('hexSky');
+        const hexHigh = document.getElementById('hexHigh');
+
+        const dotInk = document.getElementById('dotInk');
+        const dotSlate = document.getElementById('dotSlate');
+        const dotMid = document.getElementById('dotMid');
+        const dotSky = document.getElementById('dotSky');
+        const dotHigh = document.getElementById('dotHigh');
+
+        // Export & Compare Elements
+        const formatSelect = document.getElementById('formatSelect');
+        const qualityContainer = document.getElementById('qualityContainer');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const downloadBtnText = document.getElementById('downloadBtnText');
+        const splitSlider = document.getElementById('splitSlider');
+        const splitVal = document.getElementById('splitVal');
+
+        // Source Image & WebGL2 Resources
+        let sourceImage = new Image();
+        sourceImage.crossOrigin = 'anonymous';
+        let isImageLoaded = false;
+
+        let gl = null;
+        let progPass1 = null;
+        let progPass2 = null;
+        let progPass3 = null;
+        let progPass4 = null;
+        let progPass5 = null;
+        let texPass4 = null, fboPass4 = null;
+        let quadVAO = null;
+
+        let texSource = null;
+        let texPass1 = null, fboPass1 = null;
+        let texPass2 = null, fboPass2 = null;
+        let texPass3 = null, fboPass3 = null;
+
+        let previewWidth = 1100;
+        let previewHeight = 1430;
+
+        // Toast Helper
+        let toastTimer = null;
+        function showToast(msg, icon = '✨') {
+            const toast = document.getElementById('toastMessage');
+            document.getElementById('toastText').textContent = msg;
+            document.getElementById('toastIcon').textContent = icon;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3200);
+        }
+
+        function hexToRgb(hex) {
+            const clean = hex.replace('#', '');
+            const num = parseInt(clean, 16);
+            return [((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255];
+        }
+
+        // ============================================================================
+        // 4-PASS WEBGL 2.0 ENGINE INITIALIZATION
+        // ============================================================================
+        function compileShader(gl, type, src) {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+                console.error('Shader error:', gl.getShaderInfoLog(s));
+                return null;
+            }
+            return s;
+        }
+
+        function buildProgram(gl, vsSrc, fsSrc) {
+            const vs = compileShader(gl, gl.VERTEX_SHADER, vsSrc);
+            const fs = compileShader(gl, gl.FRAGMENT_SHADER, fsSrc);
+            if (!vs || !fs) return null;
+            const p = gl.createProgram();
+            gl.attachShader(p, vs);
+            gl.attachShader(p, fs);
+            gl.linkProgram(p);
+            if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+                console.error('Link error:', gl.getProgramInfoLog(p));
+                return null;
+            }
+            return p;
+        }
+
+        function initWebGL2() {
+            if (gl) return true; // Already initialized
+            
+            gl = glCanvas.getContext('webgl2', { preserveDrawingBuffer: true, antialias: false });
+            if (!gl) {
+                showToast('Przeglądarka nie obsługuje WebGL 2.0', '⚠️');
+                return false;
+            }
+
+            const vsSrc = document.getElementById('vsQuad').textContent;
+            progPass1 = buildProgram(gl, vsSrc, document.getElementById('fsPass1Tensor').textContent);
+            progPass2 = buildProgram(gl, vsSrc, document.getElementById('fsPass2FlowAndXDoG').textContent);
+            progPass3 = buildProgram(gl, vsSrc, document.getElementById('fsPass3LIC').textContent);
+            progPass4 = buildProgram(gl, vsSrc, document.getElementById('fsPass4Compositor').textContent);
+            progPass5 = buildProgram(gl, vsSrc, document.getElementById('fsPass5Shapes').textContent);
+
+            const quadVerts = new Float32Array([
+                -1, -1,  0, 0,
+                 1, -1,  1, 0,
+                -1,  1,  0, 1,
+                -1,  1,  0, 1,
+                 1, -1,  1, 0,
+                 1,  1,  1, 1
+            ]);
+
+            quadVAO = gl.createVertexArray();
+            gl.bindVertexArray(quadVAO);
+
+            const vbo = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+            gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
+
+            [progPass1, progPass2, progPass3, progPass4, progPass5].forEach(p => {
+                const posLoc = gl.getAttribLocation(p, 'a_position');
+                const uvLoc  = gl.getAttribLocation(p, 'a_texCoord');
+                gl.enableVertexAttribArray(posLoc);
+                gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 16, 0);
+                gl.enableVertexAttribArray(uvLoc);
+                gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, 16, 8);
+            });
+
+            texSource = gl.createTexture();
+            texPass1  = gl.createTexture(); fboPass1 = gl.createFramebuffer();
+            texPass2  = gl.createTexture(); fboPass2 = gl.createFramebuffer();
+            texPass3  = gl.createTexture(); fboPass3 = gl.createFramebuffer();
+            texPass4  = gl.createTexture(); fboPass4 = gl.createFramebuffer();
+
+            return true;
+        }
+
+        function setupTexture2D(tex, w, h, imageElement = null, flipY = false) {
+            if (!gl) initWebGL2();
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+            if (imageElement) {
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageElement);
+            } else {
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            }
+        }
+
+        function allocatePipelineBuffers(w, h) {
+            if (!gl) initWebGL2();
+            glCanvas.width = w;
+            glCanvas.height = h;
+
+            setupTexture2D(texSource, w, h, sourceImage, true);
+
+            [
+                [texPass1, fboPass1],
+                [texPass2, fboPass2],
+                [texPass3, fboPass3],
+                [texPass4, fboPass4]
+            ].forEach(([tex, fbo]) => {
+                setupTexture2D(tex, w, h, null, false);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+            });
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+
+        function execute4PassPipeline() {
+            if (!gl) initWebGL2();
+            if (!gl || !isImageLoaded) return;
+
+            const w = glCanvas.width;
+            const h = glCanvas.height;
+            // Filter radii stay proportional to the image, so any resolution gives the same look
+            const resolutionScale = Math.max(1, Math.max(w, h) / 1400);
+            const tx = 1.0 / w;
+            const ty = 1.0 / h;
+
+            gl.viewport(0, 0, w, h);
+            gl.bindVertexArray(quadVAO);
+
+            // --- PASS 1: Bilateral Texture Annihilator + Specular Isolation ---
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fboPass1);
+            gl.useProgram(progPass1);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texSource);
+            gl.uniform1i(gl.getUniformLocation(progPass1, 'u_sourceTex'), 0);
+            gl.uniform2f(gl.getUniformLocation(progPass1, 'u_texelSize'), tx * resolutionScale, ty * resolutionScale);
+            gl.uniform1f(gl.getUniformLocation(progPass1, 'u_shadowDetail'), state.shadowDetail / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass1, 'u_flowLength'), state.flowLength / 100.0);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // --- PASS 2: Tensor Eigenvectors, Rim-Light Probe & Clean Ink ---
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fboPass2);
+            gl.useProgram(progPass2);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texPass1);
+            gl.uniform1i(gl.getUniformLocation(progPass2, 'u_pass1Tex'), 0);
+            gl.uniform2f(gl.getUniformLocation(progPass2, 'u_texelSize'), tx * resolutionScale, ty * resolutionScale);
+            gl.uniform1f(gl.getUniformLocation(progPass2, 'u_lineThickness'), state.lineThickness);
+            gl.uniform1f(gl.getUniformLocation(progPass2, 'u_inkWeight'), state.inkWeight / 100.0);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // --- PASS 3: Vector Posterization & Geometric Rim-Light Shards ---
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fboPass3);
+            gl.useProgram(progPass3);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texPass1);
+            gl.uniform1i(gl.getUniformLocation(progPass3, 'u_pass1Tex'), 0);
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, texPass2);
+            gl.uniform1i(gl.getUniformLocation(progPass3, 'u_pass2Tex'), 1);
+            gl.uniform2f(gl.getUniformLocation(progPass3, 'u_resolution'), w, h);
+            gl.uniform2f(gl.getUniformLocation(progPass3, 'u_texelSize'), tx * resolutionScale, ty * resolutionScale);
+            gl.uniform1f(gl.getUniformLocation(progPass3, 'u_flowLength'), state.flowLength / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass3, 'u_carveDepth'), state.carveDepth / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass3, 'u_raggedness'), state.raggedness / 100.0);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // --- PASS 4: Master 5-Plate Mignola Graphic Novel Compositor ---
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fboPass4);
+            gl.useProgram(progPass4);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texPass3);
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_pass3Tex'), 0);
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, texSource);
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_sourceTex'), 1);
+
+            gl.uniform2f(gl.getUniformLocation(progPass4, 'u_resolution'), w, h);
+            gl.uniform3fv(gl.getUniformLocation(progPass4, 'u_colorInk'), hexToRgb(state.colorInk));
+            gl.uniform3fv(gl.getUniformLocation(progPass4, 'u_colorSlate'), hexToRgb(state.colorSlate));
+            gl.uniform3fv(gl.getUniformLocation(progPass4, 'u_colorMid'), hexToRgb(state.colorMid));
+            gl.uniform3fv(gl.getUniformLocation(progPass4, 'u_colorSky'), hexToRgb(state.colorSky));
+            gl.uniform3fv(gl.getUniformLocation(progPass4, 'u_colorHigh'), hexToRgb(state.colorHigh));
+
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_engraveMode'), state.engraveMode);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_carveDepth'), state.carveDepth / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_skySplit'), state.skySplit / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_inkWeight'), state.inkWeight / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_specularPop'), state.specularPop / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_raggedness'), state.raggedness / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_grainAmount'), state.grainAmount);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_shadowDetail'), state.shadowDetail);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_shadowCutoff'), state.shadowCutoff);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_highCutoff'), state.highCutoff);
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_showFrame'), state.showFrame ? 1 : 0);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_splitRatio'), state.splitRatio);
+
+            bindSegmentationUniforms();
+            gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, lutTex);
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_lutTex'), 4);
+            ensureDepthTexture();
+            gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, DEPTH.tex);
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_depthTex'), 5);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_depthAmt'), DEPTH.ready ? state.depthAmt / 100.0 : 0);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // --- PASS 5: smooth, regularised vector shapes + final anti-aliasing ---
+            const ink = hexToRgb(state.colorInk), slate = hexToRgb(state.colorSlate), mid = hexToRgb(state.colorMid),
+                  sky = hexToRgb(state.colorSky), high = hexToRgb(state.colorHigh);
+            const mx = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+            const pal = [ink, slate, mid, sky, high, mx(mid, ink, 0.32), mx(sky, slate, 0.62)];
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.useProgram(progPass5);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texPass4);
+            gl.uniform1i(gl.getUniformLocation(progPass5, 'u_tex'), 0);
+            gl.uniform2f(gl.getUniformLocation(progPass5, 'u_resolution'), w, h);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_smooth'), state.engraveMode >= 2 ? 0 : state.shapeSmooth / 100.0);
+            gl.uniform3fv(gl.getUniformLocation(progPass5, 'u_pal'), new Float32Array(pal.flat()));
+            gl.uniform1i(gl.getUniformLocation(progPass5, 'u_showFrame'), state.showFrame ? 1 : 0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_splitRatio'), state.splitRatio);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_screenToneAmount'), state.screenToneAmount);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_inkSplatter'), state.inkSplatter);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_grainAmount'), state.grainAmount);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+
+        // ============================================================================
+        // AI SEGMENTATION (SegFormer / ADE20K, runs fully in the browser via transformers.js)
+        // Detects sky, person, walls, buildings, water/fog... and feeds soft masks to the compositor.
+        // ============================================================================
+        const SEG = { enabled: true, busy: false, ready: false, items: [], pendingPlates: null, tex0: null, tex1: null, lib: null, pipe: null, token: 0 };
+        const SEG_PL = { auto: -1, ink: 0, slate: 1, mid: 2, sky: 3, high: 4, dark: 5 };
+        const SEG_PL_NAMES = [['auto', 'Auto (tonalnie)'], ['ink', 'Tusz (czerń)'], ['slate', 'Łupek'], ['mid', 'Czerwień / mgła'], ['sky', 'Niebo'], ['high', 'Światło'], ['dark', 'Ciemna czerwień (sylwetka)']];
+        const SEG_PL_BY_INDEX = { '-1': 'auto', 0: 'ink', 1: 'slate', 2: 'mid', 3: 'sky', 4: 'high', 5: 'dark' };
+        const SEG_DEFAULTS = {
+            sky: 'sky', wall: 'ink', fence: 'ink', rock: 'ink', stone: 'ink', floor: 'ink', earth: 'ink', road: 'ink', sidewalk: 'ink', path: 'ink', ground: 'ink', grass: 'ink', sand: 'ink',
+            building: 'dark', tower: 'dark', castle: 'dark', house: 'dark', skyscraper: 'dark', hovel: 'dark', mountain: 'dark', hill: 'dark', water: 'mid', sea: 'mid', river: 'mid', lake: 'mid', fog: 'mid',
+            person: 'auto'
+        };
+        const SEG_PL_LABELS_PL = {
+            sky: 'Niebo', wall: 'Ściana', person: 'Postać', water: 'Woda / mgła', building: 'Budynek / zamek', mountain: 'Góra / wzgórze', floor: 'Podłoga', earth: 'Ziemia',
+            rock: 'Skała', tree: 'Drzewo', plant: 'Roślina', grass: 'Trawa', road: 'Droga', sea: 'Morze', river: 'Rzeka', house: 'Dom', tower: 'Wieża', fence: 'Płot', car: 'Samochód',
+            door: 'Drzwi', window: 'Okno', cloud: 'Chmura', hill: 'Wzgórze', field: 'Pole', sand: 'Piasek', animal: 'Zwierzę', flower: 'Kwiat', lake: 'Jezioro', sidewalk: 'Chodnik'
+        };
+
+        function setSegStatus(text) {
+            const el = document.getElementById('segStatus');
+            if (el) el.textContent = text;
+        }
+
+        function setProcessingStatus(text, percent = null, visible = true) {
+            const box = document.getElementById('processingIndicator');
+            const label = document.getElementById('processingLabel');
+            const value = document.getElementById('processingPercent');
+            const bar = document.getElementById('processingProgress');
+            if (!box || !label || !value || !bar) return;
+            box.hidden = !visible;
+            label.textContent = text;
+            const knownProgress = Number.isFinite(percent);
+            value.textContent = knownProgress ? `${Math.round(Math.max(0, Math.min(100, percent)))}%` : 'w toku';
+            bar.classList.toggle('indeterminate', !knownProgress);
+            bar.style.width = knownProgress ? `${Math.max(0, Math.min(100, percent))}%` : '';
+        }
+
+        function modelProgress(stage) {
+            return (event) => {
+                if (!event || typeof event !== 'object') return;
+                let progress = Number.isFinite(event.progress) ? event.progress : null;
+                if (progress === null && Number.isFinite(event.loaded) && Number.isFinite(event.total) && event.total > 0) {
+                    progress = (event.loaded / event.total) * 100;
+                }
+                if (progress !== null && progress <= 1) progress *= 100;
+                const file = typeof event.file === 'string' ? event.file.split(/[\\/]/).pop() : '';
+                setProcessingStatus(file ? `${stage}: ${file}` : `${stage}…`, progress);
+            };
+        }
+
+        function renderSegList() {
+            const box = document.getElementById('segList');
+            if (!box) return;
+            box.innerHTML = '';
+            SEG.items.forEach((it, idx) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-2 bg-black/40 rounded-xl px-2.5 py-1.5 border border-white/10';
+                const name = SEG_PL_LABELS_PL[it.label] || it.label;
+                row.innerHTML = `<span class="text-[11px] text-white/85 truncate">${name} <span class="font-mono text-white/40">${(it.frac * 100).toFixed(1)}%</span></span>`;
+                const sel = document.createElement('select');
+                sel.className = 'bg-black/60 border border-white/20 rounded-lg px-1.5 py-1 text-[10px] text-white focus:outline-none';
+                SEG_PL_NAMES.forEach(([key, text]) => {
+                    const op = document.createElement('option');
+                    op.value = key; op.textContent = text;
+                    if (SEG_PL[key] === it.plate) op.selected = true;
+                    sel.appendChild(op);
+                });
+                sel.addEventListener('change', () => { SEG.items[idx].plate = SEG_PL[sel.value]; execute4PassPipeline(); });
+                row.appendChild(sel);
+                box.appendChild(row);
+            });
+        }
+
+        function ensureSegTextures() {
+            if (SEG.tex0) return;
+            SEG.tex0 = gl.createTexture();
+            SEG.tex1 = gl.createTexture();
+            [SEG.tex0, SEG.tex1].forEach(t => {
+                gl.bindTexture(gl.TEXTURE_2D, t);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            });
+        }
+
+        function bindSegmentationUniforms() {
+            ensureSegTextures();
+            const on = SEG.enabled && SEG.ready && SEG.items.length > 0;
+            const plate = new Float32Array(8).fill(-1);
+            const role = new Float32Array(8);
+            SEG.items.forEach((it, i) => {
+                plate[i] = it.plate;
+                role[i] = it.label === 'person' ? 1 : (it.label === 'sky' ? 2 : 0);
+            });
+            gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, SEG.tex0);
+            gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, SEG.tex1);
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_seg0'), 2);
+            gl.uniform1i(gl.getUniformLocation(progPass4, 'u_seg1'), 3);
+            gl.uniform1f(gl.getUniformLocation(progPass4, 'u_segOn'), on ? 1 : 0);
+            gl.uniform1fv(gl.getUniformLocation(progPass4, 'u_segPlate'), plate);
+            gl.uniform1fv(gl.getUniformLocation(progPass4, 'u_segRole'), role);
+            gl.activeTexture(gl.TEXTURE0);
+        }
+
+        const DEPTH = { ready: false, tex: null, pipe: null };
+        function ensureDepthTexture() {
+            if (DEPTH.tex) return;
+            DEPTH.tex = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, DEPTH.tex);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 1, 1, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array([128]));
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        }
+
+        // Monocular depth (Depth-Anything-small) gives every photo a near/far ordering
+        async function runDepth(token) {
+            try {
+                if (!DEPTH.pipe) {
+                    setSegStatus('Pobieram model głębi (jednorazowo, ok. 25 MB)…');
+                    DEPTH.pipe = await SEG.lib.pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
+                        progress_callback: modelProgress('Pobieranie modelu głębi')
+                    });
+                }
+                if (token !== SEG.token) return;
+                setSegStatus('Szacuję głębię sceny…');
+                setProcessingStatus('Szacuję głębię sceny…');
+                const iw = sourceImage.naturalWidth || sourceImage.width, ih = sourceImage.naturalHeight || sourceImage.height;
+                const r = Math.min(1, 640 / Math.max(iw, ih));
+                const c = document.createElement('canvas');
+                c.width = Math.max(8, Math.round(iw * r)); c.height = Math.max(8, Math.round(ih * r));
+                c.getContext('2d').drawImage(sourceImage, 0, 0, c.width, c.height);
+                const out = await DEPTH.pipe(c.toDataURL('image/jpeg', 0.92));
+                if (token !== SEG.token) return;
+                const m = out.depth, n = m.width * m.height, src = m.data;
+                const hist = new Uint32Array(256);
+                for (let i = 0; i < n; i++) hist[src[i]]++;
+                let a = 0, lo = 0, hi = 255;
+                for (let i = 0; i < 256; i++) { a += hist[i]; if (a >= n * 0.02) { lo = i; break; } }
+                a = 0;
+                for (let i = 0; i < 256; i++) { a += hist[i]; if (a >= n * 0.98) { hi = i; break; } }
+                const span = Math.max(hi - lo, 16), d = new Uint8Array(n);
+                for (let i = 0; i < n; i++) d[i] = Math.round(Math.min(1, Math.max(0, (src[i] - lo) / span)) * 255);
+                ensureDepthTexture();
+                gl.bindTexture(gl.TEXTURE_2D, DEPTH.tex);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, m.width, m.height, 0, gl.RED, gl.UNSIGNED_BYTE, d);
+                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+                DEPTH.ready = true;
+                execute4PassPipeline();
+                syncSlidersUI();
+            } catch (err) {
+                console.error('Depth failed:', err);
+                if (token === SEG.token) {
+                    DEPTH.ready = false;
+                    setProcessingStatus('Podgląd gotowy; mapa głębi niedostępna.', null);
+                    setTimeout(() => {
+                        if (token === SEG.token) setProcessingStatus('', null, false);
+                    }, 5000);
+                }
+            }
+        }
+
+        // Runs SegFormer-B2 in a worker so heavy inference never freezes the editor UI.
+        function createSegWorker(modelId, onProgress) {
+            const src = `
+                import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+                let pipe = null;
+                self.onmessage = async (e) => {
+                    const { id, image } = e.data;
+                    try {
+                        if (!pipe) {
+                            pipe = await pipeline('image-segmentation', ${JSON.stringify(modelId)}, {
+                                progress_callback: (p) => self.postMessage({ progress: p })
+                            });
+                        }
+                        const out = await pipe(image);
+                        const items = out.map(o => ({ label: o.label, width: o.mask.width, height: o.mask.height, data: new Uint8Array(o.mask.data) }));
+                        self.postMessage({ id, items }, items.map(i => i.data.buffer));
+                    } catch (err) {
+                        self.postMessage({ id, error: String(err && err.message || err) });
+                    }
+                };`;
+            const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+            const worker = new Worker(url, { type: 'module' });
+            SEG.worker = worker;
+            const pending = new Map();
+            let nextId = 1;
+            worker.onmessage = (e) => {
+                if (e.data.progress) { if (onProgress) onProgress(e.data.progress); return; }
+                const job = pending.get(e.data.id);
+                if (!job) return;
+                pending.delete(e.data.id);
+                if (e.data.error) job.reject(new Error(e.data.error));
+                else job.resolve(e.data.items.map(i => ({ label: i.label, mask: { width: i.width, height: i.height, data: i.data } })));
+            };
+            worker.onerror = (e) => {
+                pending.forEach(job => job.reject(new Error(e.message || 'Worker error')));
+                pending.clear();
+                SEG.pipe = null;
+                worker.terminate();
+            };
+            return (image) => new Promise((resolve, reject) => {
+                const id = nextId++;
+                pending.set(id, { resolve, reject });
+                worker.postMessage({ id, image });
+            });
+        }
+
+        async function runSegmentation() {
+            if (!SEG.enabled || !isImageLoaded || SEG.busy) return;
+            const token = ++SEG.token;
+            SEG.busy = true;
+            const btn = document.getElementById('segBtn');
+            if (btn) btn.disabled = true;
+            const modelSelBusy = document.getElementById('segModel');
+            if (modelSelBusy) modelSelBusy.disabled = true;
+            try {
+                if (!SEG.lib) SEG.lib = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
+                if (!SEG.pipe) {
+                    const sel = document.getElementById('segModel');
+                    const opt = sel.options[sel.selectedIndex];
+                    setSegStatus(`Pobieram model AI SegFormer-${opt.dataset.name} (jednorazowo, ok. ${opt.dataset.mb} MB)…`);
+                    SEG.pipe = createSegWorker(sel.value, modelProgress('Pobieranie modelu segmentacji'));
+                }
+                if (token !== SEG.token) return;
+                setSegStatus('Analizuję obraz…');
+                setProcessingStatus('Analizuję elementy obrazu…');
+                const iw = sourceImage.naturalWidth || sourceImage.width;
+                const ih = sourceImage.naturalHeight || sourceImage.height;
+                const r = Math.min(1, 640 / Math.max(iw, ih));
+                const c = document.createElement('canvas');
+                c.width = Math.max(8, Math.round(iw * r));
+                c.height = Math.max(8, Math.round(ih * r));
+                c.getContext('2d').drawImage(sourceImage, 0, 0, c.width, c.height);
+                const out = await SEG.pipe(c.toDataURL('image/jpeg', 0.92));
+                if (token !== SEG.token) return;
+
+                const W = out[0].mask.width, H = out[0].mask.height;
+                const total = W * H;
+                const found = out.map(o => {
+                    let n = 0; const d = o.mask.data;
+                    for (let i = 0; i < total; i++) if (d[i] > 127) n++;
+                    return { label: o.label, frac: n / total, mask: d };
+                }).filter(s => s.frac >= 0.004).sort((a, b) => b.frac - a.frac).slice(0, 8);
+
+                const d0 = new Uint8Array(total * 4), d1 = new Uint8Array(total * 4);
+                found.forEach((s, k) => {
+                    const dst = k < 4 ? d0 : d1, ch = k % 4;
+                    for (let i = 0; i < total; i++) dst[i * 4 + ch] = s.mask[i];
+                });
+                ensureSegTextures();
+                [[SEG.tex0, d0], [SEG.tex1, d1]].forEach(([t, d]) => {
+                    gl.bindTexture(gl.TEXTURE_2D, t);
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, d);
+                });
+                const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+                // Re-derive the tone curve from the non-sky pixels so the rest of the scene gets the full tonal range
+                const skyIdx = found.findIndex(s => s.label === 'sky');
+                if (skyIdx >= 0) {
+                    const h2 = new Float32Array(256); let cnt = 0;
+                    for (let i = 0; i < total; i += 2) {
+                        if (found[skyIdx].mask[i] > 127) continue;
+                        const q = i * 4; h2[Math.round(0.2126 * px[q] + 0.7152 * px[q + 1] + 0.0722 * px[q + 2])]++; cnt++;
+                    }
+                    if (cnt > total * 0.05) applyHistToLut(h2);
+                }
+                SEG.items = found.map(s => {
+                    let sum = 0, n = 0;
+                    for (let i = 0; i < total; i += 3) if (s.mask[i] > 127) { const q = i * 4; sum += 0.2126 * px[q] + 0.7152 * px[q + 1] + 0.0722 * px[q + 2]; n++; }
+                    const mean = n ? sum / n / 255 : 0.5;
+                    let key = SEG_DEFAULTS[s.label] || 'auto';
+                    // Forcing a plate only where it matches the region's tone avoids wiping out bright or dark areas of other photos
+                    if (key === 'ink' && mean > 0.38) key = 'auto';
+                    if ((key === 'mid' || key === 'dark') && mean < 0.25) key = 'auto';
+                    const plate = SEG.pendingPlates && Object.prototype.hasOwnProperty.call(SEG.pendingPlates, s.label)
+                        ? SEG.pendingPlates[s.label]
+                        : SEG_PL[key];
+                    return { label: s.label, frac: s.frac, plate };
+                });
+                SEG.pendingPlates = null;
+                SEG.ready = true;
+                renderSegList();
+                setSegStatus(`Wykryto ${SEG.items.length} elementów — przypisz im płyty koloru`);
+                execute4PassPipeline();
+                await runDepth(token);
+                if (DEPTH.ready) setSegStatus(`Wykryto ${SEG.items.length} elementów + mapa głębi — przypisz im płyty koloru`);
+                if (token === SEG.token) setProcessingStatus('', null, false);
+            } catch (err) {
+                console.error('Segmentation failed:', err);
+                if (token === SEG.token) {
+                    SEG.ready = false;
+                    setSegStatus('Segmentacja AI niedostępna (wymaga internetu) — używam trybu tonalnego');
+                    setProcessingStatus('Podgląd gotowy; segmentacja AI niedostępna.', null);
+                    setTimeout(() => {
+                        if (token === SEG.token) setProcessingStatus('', null, false);
+                    }, 5000);
+                }
+            } finally {
+                if (token === SEG.token) {
+                    SEG.busy = false;
+                    if (btn) btn.disabled = false;
+                    const modelSel = document.getElementById('segModel');
+                    if (modelSel) modelSel.disabled = false;
+                }
+            }
+        }
+        document.addEventListener('change', (e) => {
+            if (e.target.id !== 'segModel' || SEG.busy) return;
+            if (SEG.worker) { SEG.worker.terminate(); SEG.worker = null; }
+            SEG.pipe = null;
+            SEG.ready = false;
+            if (isImageLoaded) runSegmentation();
+        });
+        // Per-image tone map: blends a percentile stretch with histogram equalisation so every photo
+        // gets a sensible share of ink / slate / colour / light plates, whatever its exposure.
+        let lutTex = null;
+        const LUT_REF_LO = 0.06, LUT_REF_HI = 0.78, LUT_EQ = 0.65;
+        function measureSourceLevels() {
+            const c = document.createElement('canvas');
+            const iw = sourceImage.naturalWidth || sourceImage.width, ih = sourceImage.naturalHeight || sourceImage.height;
+            const r = Math.min(1, 384 / Math.max(iw, ih));
+            c.width = Math.max(8, Math.round(iw * r)); c.height = Math.max(8, Math.round(ih * r));
+            const x = c.getContext('2d', { willReadFrequently: true });
+            x.drawImage(sourceImage, 0, 0, c.width, c.height);
+            const d = x.getImageData(0, 0, c.width, c.height).data;
+            const hist = new Float32Array(256);
+            for (let i = 0; i < d.length; i += 4) hist[Math.round(0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2])]++;
+            applyHistToLut(hist);
+        }
+        function applyHistToLut(hist) {
+            const sm = new Float32Array(256);
+            for (let i = 0; i < 256; i++) { let s = 0, n = 0; for (let k = -4; k <= 4; k++) { const j = i + k; if (j >= 0 && j < 256) { s += hist[j]; n++; } } sm[i] = s / n; }
+            let total = 0; for (let i = 0; i < 256; i++) total += sm[i];
+            const cdf = new Float32Array(256); let a = 0;
+            for (let i = 0; i < 256; i++) { a += sm[i]; cdf[i] = a / total; }
+            const lo = (() => { for (let i = 0; i < 256; i++) if (cdf[i] >= 0.02) return i; return 0; })();
+            const hi = (() => { for (let i = 0; i < 256; i++) if (cdf[i] >= 0.98) return i; return 255; })();
+            const span = Math.max(hi - lo, 40);
+            const lut = new Uint8Array(256);
+            for (let i = 0; i < 256; i++) {
+                const lin = Math.min(1, Math.max(0, (i - lo) / span));
+                const t = LUT_EQ * cdf[i] + (1 - LUT_EQ) * lin;
+                lut[i] = Math.round((LUT_REF_LO + t * (LUT_REF_HI - LUT_REF_LO)) * 255);
+            }
+            if (!lutTex) {
+                lutTex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, lutTex);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            }
+            gl.bindTexture(gl.TEXTURE_2D, lutTex);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 256, 1, 0, gl.RED, gl.UNSIGNED_BYTE, lut);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+        }
+        function loadSourceIntoEngine(onReady = null) {
+            if (!gl) initWebGL2();
+            const imageToLoad = sourceImage;
+            const origW = imageToLoad.naturalWidth || imageToLoad.width;
+            const origH = imageToLoad.naturalHeight || imageToLoad.height;
+            resolutionBadge.textContent = `${origW} × ${origH} px`;
+            document.getElementById('emptyState').hidden = true;
+            glCanvas.style.visibility = 'visible';
+            setProcessingStatus('Tworzę podgląd obrazu…');
+            requestAnimationFrame(() => {
+                if (sourceImage !== imageToLoad) return;
+                try {
+                    measureSourceLevels();
+                    isImageLoaded = true;
+                    const maxPreview = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 8192);
+                    if (origW > maxPreview || origH > maxPreview) {
+                        const r = Math.min(maxPreview / origW, maxPreview / origH);
+                        previewWidth = Math.round(origW * r);
+                        previewHeight = Math.round(origH * r);
+                    } else {
+                        previewWidth = origW;
+                        previewHeight = origH;
+                    }
+
+                    allocatePipelineBuffers(previewWidth, previewHeight);
+                    SEG.token++;
+                    SEG.busy = false;
+                    SEG.ready = false;
+                    DEPTH.ready = false;
+                    SEG.items = [];
+                    renderSegList();
+                    syncSlidersUI();
+                    execute4PassPipeline();
+                    if (SEG.enabled) {
+                        setProcessingStatus('Podgląd gotowy — przygotowuję analizę AI…');
+                        setTimeout(runSegmentation, 50);
+                    } else {
+                        setProcessingStatus('', null, false);
+                    }
+                    if (onReady) onReady();
+                } catch (error) {
+                    console.error('Image processing failed:', error);
+                    isImageLoaded = false;
+                    glCanvas.style.visibility = 'hidden';
+                    document.getElementById('emptyState').hidden = false;
+                    setProcessingStatus('Nie udało się przygotować obrazu.', null);
+                }
+            });
+        }
+
+        // ============================================================================
+        // HIGH-DETAIL PROCEDURAL SCENES (INCLUDING THE GUARDIAN IN STONE ALLEY!)
+        // ============================================================================
+        function createGuardianAlleyScene() {
+            const c = document.createElement('canvas');
+            c.width = 1100;
+            c.height = 1680;
+            const ctx = c.getContext('2d');
+
+            // 1. Misty Overcast Sky & Fog Corridor in the Center
+            const skyG = ctx.createLinearGradient(0, 0, 0, 1450);
+            skyG.addColorStop(0, '#787c82');
+            skyG.addColorStop(0.35, '#b8bcc2');
+            skyG.addColorStop(0.75, '#ced2d6');
+            skyG.addColorStop(1, '#222428');
+            ctx.fillStyle = skyG;
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            // Distant Gothic Castle on the Hill in the Fog
+            ctx.fillStyle = '#8b8d91';
+            ctx.beginPath();
+            ctx.moveTo(360, 660);
+            ctx.lineTo(380, 540);
+            ctx.lineTo(445, 510);
+            ctx.lineTo(495, 440);
+            ctx.lineTo(525, 345); // Main Spire
+            ctx.lineTo(550, 440);
+            ctx.lineTo(615, 495);
+            ctx.lineTo(685, 550);
+            ctx.lineTo(720, 660);
+            ctx.closePath();
+            ctx.fill();
+
+            // Fog banks swirling below castle
+            for (let f = 0; f < 28; f++) {
+                const fx = 330 + (f * 37) % 440;
+                const fy = 590 + (f * 29) % 720;
+                const rg = ctx.createRadialGradient(fx, fy, 10, fx, fy, 120);
+                rg.addColorStop(0, 'rgba(215, 220, 225, 0.45)');
+                rg.addColorStop(1, 'rgba(130, 135, 140, 0)');
+                ctx.fillStyle = rg;
+                ctx.beginPath();
+                ctx.arc(fx, fy, 120, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 2. Left & Right Towering Textured Stone Alley Walls (with noisy stones that the filter will crush into Mignola Black + Red Rim Shards!)
+            ctx.fillStyle = '#141312';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(295, 0);
+            ctx.lineTo(395, 1390);
+            ctx.lineTo(0, 1680);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(1100, 0);
+            ctx.lineTo(785, 0);
+            ctx.lineTo(715, 1390);
+            ctx.lineTo(1100, 1680);
+            ctx.closePath();
+            ctx.fill();
+
+            // Thousands of individual noisy stones on the walls (simulating the photographic "Before" image)
+            for (let s = 0; s < 950; s++) {
+                const isLeft = s % 2 === 0;
+                const sy = (s * 17) % 1550;
+                const wallEdge = isLeft ? (295 + (sy / 1390) * 100) : (785 - (sy / 1390) * 70);
+                const sx = isLeft ? (Math.random() * (wallEdge - 12)) : (wallEdge + 12 + Math.random() * (1100 - wallEdge));
+                const sw = 18 + (s % 26);
+                const sh = 12 + (s % 18);
+
+                // Stones near the inner alley edge catch stronger grazing rim light!
+                const distToAlley = Math.abs(sx - wallEdge);
+                const rimBoost = Math.max(0, 1 - distToAlley / 65) * 95;
+                const stoneLuma = Math.round(18 + (s % 24) + rimBoost);
+                ctx.fillStyle = `rgb(${stoneLuma},${stoneLuma - 2},${stoneLuma - 4})`;
+                ctx.fillRect(sx - sw / 2, sy - sh / 2, sw, sh);
+            }
+
+            // Cobblestone Floor at bottom
+            ctx.fillStyle = '#18191b';
+            ctx.fillRect(280, 1360, 540, 320);
+
+            // 3. The Hooded Guardian in the Alley
+            // Long Dark Trench Coat (Slate / Olive-Charcoal mid-darks so Plate 2 separates the folds!)
+            function drawCoatFold(pts, shade) {
+                ctx.fillStyle = shade;
+                ctx.beginPath();
+                pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Outer Coat Silhouette & Folds
+            drawCoatFold([[485, 760], [645, 760], [725, 1335], [640, 1355], [585, 1020], [515, 1020], [455, 1310], [395, 1290]], '#23282a');
+            drawCoatFold([[485, 760], [535, 775], [465, 1310], [415, 1295]], '#2e3538');
+            drawCoatFold([[595, 775], [645, 760], [715, 1335], [665, 1350]], '#2f373a');
+
+            // Left & Right Arms (Left hand touching the right alley wall)
+            drawCoatFold([[485, 770], [440, 790], [405, 1030], [450, 1035]], '#2b3235');
+            drawCoatFold([[635, 770], [725, 845], [790, 775], [805, 805], [730, 895], [630, 835]], '#293033');
+
+            // Dark Trousers & Boots (Deep Black Ink Plate 1)
+            drawCoatFold([[495, 960], [625, 960], [615, 1480], [565, 1480], [555, 1140], [530, 1485], [475, 1485]], '#0b0c0e');
+
+            // Crisp White Shirt in the Center (Plate 5 Highlight!)
+            const shirtG = ctx.createLinearGradient(515, 755, 605, 945);
+            shirtG.addColorStop(0, '#e8eef2');
+            shirtG.addColorStop(0.7, '#cdd6dc');
+            shirtG.addColorStop(1, '#98a4ac');
+            ctx.fillStyle = shirtG;
+            ctx.beginPath();
+            ctx.moveTo(525, 755);
+            ctx.lineTo(595, 755);
+            ctx.lineTo(590, 945);
+            ctx.lineTo(520, 945);
+            ctx.closePath();
+            ctx.fill();
+
+            // Leather Chest Straps across the white shirt
+            ctx.strokeStyle = '#381e19';
+            ctx.lineWidth = 18;
+            ctx.beginPath();
+            ctx.moveTo(522, 785);
+            ctx.lineTo(592, 855);
+            ctx.moveTo(588, 785);
+            ctx.lineTo(525, 845);
+            ctx.stroke();
+
+            // Bright Metallic Ring Belt Buckle (Plate 5 Highlight!)
+            ctx.strokeStyle = '#e6eef2';
+            ctx.lineWidth = 9;
+            ctx.beginPath();
+            ctx.arc(558, 962, 19, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Gleaming Dagger Blade in Right Hand (Plate 5 Highlight!)
+            ctx.fillStyle = '#eef6fa';
+            ctx.beginPath();
+            ctx.moveTo(428, 1042);
+            ctx.lineTo(442, 1036);
+            ctx.lineTo(476, 1112);
+            ctx.lineTo(454, 1098);
+            ctx.closePath();
+            ctx.fill();
+
+            // Dark Hood & Flowing Hair Silhouette
+            ctx.fillStyle = '#090b0d';
+            ctx.beginPath();
+            ctx.arc(560, 695, 68, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(560, 605);
+            ctx.lineTo(475, 745);
+            ctx.lineTo(645, 745);
+            ctx.closePath();
+            ctx.fill();
+
+            // Subtle lit nose/chin under the hood
+            ctx.fillStyle = '#6e7276';
+            ctx.beginPath();
+            ctx.arc(560, 718, 16, 0, Math.PI);
+            ctx.fill();
+
+            // PINPOINT GLOWING WHITE EYES UNDER THE HOOD!
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(544, 688, 4.5, 0, Math.PI * 2);
+            ctx.arc(576, 688, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            state.fileName = 'mroczny_straznik_w_alei';
+            sourceImage.onload = () => loadSourceIntoEngine();
+            sourceImage.src = c.toDataURL('image/png');
+        }
+
+        function createHornedForestKnightScene() {
+            const c = document.createElement('canvas');
+            c.width = 1200;
+            c.height = 1680;
+            const ctx = c.getContext('2d');
+
+            // Bright forest canopy backlight
+            const bgG = ctx.createLinearGradient(0, 0, 0, c.height);
+            bgG.addColorStop(0, '#d8dcd0');
+            bgG.addColorStop(0.65, '#b4b8ac');
+            bgG.addColorStop(1, '#262822');
+            ctx.fillStyle = bgG;
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            // Dark vertical tree trunks
+            ctx.fillStyle = '#181916';
+            [[110, 65], [260, 40], [920, 75], [1040, 50]].forEach(([tx, tw]) => {
+                ctx.fillRect(tx, 0, tw, c.height);
+            });
+
+            // Horned Knight Silhouette & Armor Plates
+            ctx.fillStyle = '#121310';
+            // Great antlers/horns
+            ctx.lineWidth = 22;
+            ctx.strokeStyle = '#10110e';
+            ctx.beginPath();
+            ctx.moveTo(600, 340);
+            ctx.bezierCurveTo(450, 260, 340, 350, 310, 270);
+            ctx.moveTo(600, 340);
+            ctx.bezierCurveTo(750, 260, 860, 350, 890, 270);
+            ctx.stroke();
+
+            // Helmet & Torso
+            ctx.beginPath();
+            ctx.arc(600, 360, 58, 0, Math.PI * 2);
+            ctx.fill();
+
+            const armorG = ctx.createLinearGradient(450, 420, 750, 920);
+            armorG.addColorStop(0, '#72766a');
+            armorG.addColorStop(0.4, '#232620');
+            armorG.addColorStop(1, '#0e100c');
+            ctx.fillStyle = armorG;
+            ctx.beginPath();
+            ctx.moveTo(450, 440);
+            ctx.lineTo(750, 440);
+            ctx.lineTo(690, 880);
+            ctx.lineTo(510, 880);
+            ctx.closePath();
+            ctx.fill();
+
+            // Legs & Spear
+            ctx.fillStyle = '#141612';
+            ctx.fillRect(495, 880, 78, 560);
+            ctx.fillRect(625, 880, 78, 560);
+            ctx.fillRect(235, 120, 14, 1420);
+
+            // Skulls at the bottom forest floor
+            for (let s = 0; s < 6; s++) {
+                const sx = 160 + s * 95;
+                const sy = 1420 + (s % 2) * 55;
+                ctx.fillStyle = '#b8bcb0';
+                ctx.beginPath();
+                ctx.arc(sx, sy, 38, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            state.fileName = 'printone_cclvii_knight';
+            sourceImage.onload = () => loadSourceIntoEngine();
+            sourceImage.src = c.toDataURL('image/png');
+        }
+
+        function createSkeletonAndSerpentScene() {
+            const c = document.createElement('canvas');
+            c.width = 1200;
+            c.height = 1560;
+            const ctx = c.getContext('2d');
+
+            // Dark background like Ref #2
+            ctx.fillStyle = '#121212';
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            // Crimson-toned midtone sun disk behind skeleton
+            const sunG = ctx.createRadialGradient(590, 390, 40, 590, 390, 310);
+            sunG.addColorStop(0, '#888888');
+            sunG.addColorStop(0.75, '#525252');
+            sunG.addColorStop(1, '#141414');
+            ctx.fillStyle = sunG;
+            ctx.beginPath();
+            ctx.arc(590, 390, 290, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Coiled Giant Serpent (Midtone body with scales)
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#686868';
+            ctx.lineWidth = 135;
+            ctx.beginPath();
+            ctx.moveTo(460, 420);
+            ctx.bezierCurveTo(260, 580, 790, 960, 680, 1240);
+            ctx.bezierCurveTo(580, 1450, 210, 1180, 240, 1380);
+            ctx.stroke();
+
+            // Serpent scale hatching lines along body
+            ctx.strokeStyle = '#161616';
+            ctx.lineWidth = 4;
+            for (let t = 0; t < 55; t++) {
+                const y = 440 + t * 17;
+                const x = 440 + Math.sin(t * 0.16) * 180;
+                ctx.beginPath();
+                ctx.arc(x, y, 58, 0.2, Math.PI - 0.2);
+                ctx.stroke();
+            }
+
+            // Armored Skeleton Warrior (Bright bone & gleaming steel plates)
+            function drawPlate(pts) {
+                const g = ctx.createLinearGradient(pts[0][0], pts[0][1], pts[2][0], pts[2][1]);
+                g.addColorStop(0, '#f8f8f8');
+                g.addColorStop(0.5, '#8c8c8c');
+                g.addColorStop(1, '#1b1b1b');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#090909';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+
+            // Skull in Profile facing left
+            const skG = ctx.createRadialGradient(730, 320, 15, 720, 340, 95);
+            skG.addColorStop(0, '#ffffff');
+            skG.addColorStop(0.65, '#b0b0b0');
+            skG.addColorStop(1, '#222222');
+            ctx.fillStyle = skG;
+            ctx.beginPath();
+            ctx.arc(735, 330, 78, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#0a0a0a';
+            ctx.beginPath();
+            ctx.arc(690, 330, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Torso Cuirass & Tassets
+            drawPlate([[620, 430], [820, 460], [740, 790], [550, 740]]);
+            drawPlate([[530, 740], [755, 780], [810, 940], [470, 910]]);
+            // Armored Legs striding
+            drawPlate([[490, 910], [610, 930], [340, 1390], [230, 1380]]);
+            drawPlate([[670, 920], [790, 910], [940, 1380], [840, 1390]]);
+            // Extended Arm throttling the Serpent
+            drawPlate([[640, 450], [660, 520], [330, 490], [330, 430]]);
+
+            state.fileName = 'printone_coming_of_dawn';
+            sourceImage.onload = () => loadSourceIntoEngine();
+            sourceImage.src = c.toDataURL('image/png');
+        }
+
+        function createPinkEclipseCrownScene() {
+            const c = document.createElement('canvas');
+            c.width = 1200;
+            c.height = 1560;
+            const ctx = c.getContext('2d');
+
+            // Deep night sky
+            ctx.fillStyle = '#141418';
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            // Blazing Giant Sun Disk (Plate 3 Highlight)
+            ctx.fillStyle = '#f6f6f6';
+            ctx.beginPath();
+            ctx.arc(670, 390, 275, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Corona burst spikes around Sun
+            ctx.save();
+            ctx.translate(670, 390);
+            for (let i = 0; i < 140; i++) {
+                ctx.rotate((Math.PI * 2) / 140);
+                ctx.strokeStyle = i % 2 === 0 ? '#f5f5f5' : '#141418';
+                ctx.lineWidth = 2.5 + (i % 4);
+                ctx.beginPath();
+                ctx.moveTo(255, 0);
+                ctx.lineTo(315 + (i % 7) * 18, 0);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Floating Dark Crown inside the Sun
+            ctx.fillStyle = '#121216';
+            ctx.beginPath();
+            ctx.moveTo(610, 385);
+            ctx.lineTo(605, 315);
+            ctx.lineTo(632, 355);
+            ctx.lineTo(652, 305);
+            ctx.lineTo(670, 355);
+            ctx.lineTo(690, 305);
+            ctx.lineTo(710, 355);
+            ctx.lineTo(735, 315);
+            ctx.lineTo(730, 385);
+            ctx.closePath();
+            ctx.fill();
+
+            // GothicRuined Cathedral on Left (Midtone grey stone)
+            const cathG = ctx.createLinearGradient(60, 500, 480, 1280);
+            cathG.addColorStop(0, '#969696');
+            cathG.addColorStop(1, '#585858');
+            ctx.fillStyle = cathG;
+            ctx.beginPath();
+            ctx.moveTo(40, 1320);
+            ctx.lineTo(95, 590);
+            ctx.lineTo(155, 840);
+            ctx.lineTo(235, 450);
+            ctx.lineTo(310, 860);
+            ctx.lineTo(460, 980);
+            ctx.lineTo(490, 1320);
+            ctx.closePath();
+            ctx.fill();
+
+            // Glowing River of Pink/Light at bottom left
+            ctx.fillStyle = '#f4f4f4';
+            ctx.beginPath();
+            ctx.moveTo(590, 1080);
+            ctx.bezierCurveTo(430, 1180, 210, 1290, 110, 1560);
+            ctx.lineTo(690, 1560);
+            ctx.closePath();
+            ctx.fill();
+
+            // Dark Headless Sovereign Cloak & Greatsword in Foreground
+            const cloakG = ctx.createLinearGradient(540, 440, 890, 1460);
+            cloakG.addColorStop(0, '#444448');
+            cloakG.addColorStop(0.35, '#1d1d22');
+            cloakG.addColorStop(1, '#0b0b0e');
+            ctx.fillStyle = cloakG;
+            ctx.beginPath();
+            ctx.moveTo(640, 435);
+            ctx.lineTo(715, 435);
+            ctx.lineTo(745, 515);
+            ctx.lineTo(885, 595);
+            ctx.lineTo(860, 1460);
+            ctx.lineTo(540, 1460);
+            ctx.lineTo(555, 595);
+            ctx.lineTo(630, 515);
+            ctx.closePath();
+            ctx.fill();
+
+            // Greatsword held vertically
+            ctx.fillStyle = '#b4b4b8';
+            ctx.fillRect(825, 410, 22, 1060);
+            ctx.fillRect(735, 745, 200, 18);
+
+            state.fileName = 'printone_pink_eclipse';
+            sourceImage.onload = () => loadSourceIntoEngine();
+            sourceImage.src = c.toDataURL('image/png');
+        }
+
+        // ============================================================================
+        // UI synchronization & Event Listeners
+        // ============================================================================
+        function renderPaletteCards() {
+            paletteGrid.innerHTML = '';
+            document.getElementById('paletteCount').textContent = `${PRINTONE_PALETTES.length} palet`;
+            PRINTONE_PALETTES.forEach(p => {
+                const btn = document.createElement('button');
+                const active = state.activePaletteId === p.id;
+                btn.type = 'button';
+                btn.title = `${p.name} — ${p.subtitle}`;
+                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+                btn.className = `glass-button palette-card text-left flex flex-col transition-all ${active ? 'preset-active' : ''}`;
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between w-full">
+                        <span class="palette-name font-semibold truncate pr-1">${p.name}</span>
+                    </div>
+                    <span class="palette-swatches" aria-hidden="true">
+                        <span style="background:${p.ink}"></span>
+                        <span style="background:${p.slate}"></span>
+                        <span style="background:${p.mid}"></span>
+                        <span style="background:${p.sky}"></span>
+                        <span style="background:${p.high}"></span>
+                    </span>
+                    <span class="palette-subtitle truncate">${p.subtitle}</span>
+                `;
+                btn.addEventListener('click', () => {
+                    applyPalette(p);
+                    document.getElementById('paletteDisclosure').open = false;
+                });
+                paletteGrid.appendChild(btn);
+            });
+        }
+
+        function syncColorsUI() {
+            colorInkInput.value = state.colorInk;
+            colorSlateInput.value = state.colorSlate;
+            colorMidInput.value = state.colorMid;
+            colorSkyInput.value = state.colorSky;
+            colorHighInput.value = state.colorHigh;
+
+            hexInk.textContent = state.colorInk.toUpperCase();
+            hexSlate.textContent = state.colorSlate.toUpperCase();
+            hexMid.textContent = state.colorMid.toUpperCase();
+            hexSky.textContent = state.colorSky.toUpperCase();
+            hexHigh.textContent = state.colorHigh.toUpperCase();
+
+            dotInk.style.backgroundColor = state.colorInk;
+            dotSlate.style.backgroundColor = state.colorSlate;
+            dotMid.style.backgroundColor = state.colorMid;
+            dotSky.style.backgroundColor = state.colorSky;
+            dotHigh.style.backgroundColor = state.colorHigh;
+        }
+
+        function syncSlidersUI() {
+            document.getElementById('paramFlowLength').value = state.flowLength;
+            document.getElementById('valFlowLength').textContent = `${state.flowLength}%`;
+
+            document.getElementById('paramCarveDepth').value = state.carveDepth;
+            document.getElementById('valCarveDepth').textContent = `${state.carveDepth}%`;
+
+            document.getElementById('paramSkySplit').value = state.skySplit;
+            document.getElementById('valSkySplit').textContent = `${state.skySplit}%`;
+
+            document.getElementById('paramInkWeight').value = state.inkWeight;
+            document.getElementById('valInkWeight').textContent = `${state.inkWeight}%`;
+
+            document.getElementById('paramLineThickness').value = state.lineThickness;
+            document.getElementById('valLineThickness').textContent = `${Number(state.lineThickness).toFixed(1)}×`;
+
+            document.getElementById('paramSpecularPop').value = state.specularPop;
+            document.getElementById('valSpecularPop').textContent = `${state.specularPop}%`;
+
+            document.getElementById('paramRaggedness').value = state.raggedness;
+            document.getElementById('valRaggedness').textContent = `${state.raggedness}%`;
+            document.getElementById('paramGrainAmount').value = state.grainAmount;
+            document.getElementById('valGrainAmount').textContent = `${state.grainAmount}%`;
+            document.getElementById('paramInkSplatter').value = state.inkSplatter;
+            document.getElementById('valInkSplatter').textContent = `${state.inkSplatter}%`;
+            document.getElementById('paramScreenToneAmount').value = state.screenToneAmount;
+            document.getElementById('valScreenToneAmount').textContent = `${state.screenToneAmount}%`;
+            document.getElementById('paramShapeSmooth').value = state.shapeSmooth;
+            document.getElementById('valShapeSmooth').textContent = `${state.shapeSmooth}%`;
+            const smoothDisabled = state.engraveMode >= 2;
+            document.getElementById('paramShapeSmooth').disabled = smoothDisabled;
+            document.getElementById('shapeSmoothHelp').textContent = smoothDisabled
+                ? 'Niedostępne w drzeworycie i rycinie punktowej — te style zachowują własną fakturę.'
+                : 'Wygładza granice kolorowych obszarów w trybach komiksowych.';
+            document.getElementById('paramDepth').value = state.depthAmt;
+            document.getElementById('valDepth').textContent = `${state.depthAmt}%`;
+            document.getElementById('paramDepth').disabled = !DEPTH.ready;
+            document.getElementById('depthHelp').textContent = DEPTH.ready
+                ? 'Mapa głębi gotowa — reguluje rozjaśnianie dalszych planów.'
+                : 'Niedostępny do czasu wyliczenia mapy głębi AI.';
+
+            document.getElementById('paramShadowDetail').value = state.shadowDetail;
+            document.getElementById('valShadowDetail').textContent = `${state.shadowDetail}%`;
+
+            document.getElementById('paramShadowCutoff').value = state.shadowCutoff;
+            document.getElementById('valShadowCutoff').textContent = `${Math.round(state.shadowCutoff * 100)}%`;
+
+            document.getElementById('paramHighCutoff').value = state.highCutoff;
+            document.getElementById('valHighCutoff').textContent = `${Math.round(state.highCutoff * 100)}%`;
+
+            document.getElementById('paramFrame').checked = state.showFrame;
+
+            document.querySelectorAll('.engrave-btn').forEach(btn => {
+                if (parseInt(btn.dataset.mode, 10) === state.engraveMode) {
+                    btn.classList.add('preset-active');
+                } else {
+                    btn.classList.remove('preset-active');
+                }
+            });
+        }
+
+        function applyPalette(p) {
+            state.activePaletteId = p.id;
+            state.colorInk = p.ink;
+            state.colorSlate = p.slate;
+            state.colorMid = p.mid;
+            state.colorSky = p.sky;
+            state.colorHigh = p.high;
+            if (p.preset) Object.assign(state, p.preset);
+
+            activePaletteName.textContent = p.name;
+            renderPaletteCards();
+            syncColorsUI();
+            syncSlidersUI();
+            execute4PassPipeline();
+        }
+
+        function markPaletteCustom() {
+            state.activePaletteId = 'custom';
+            activePaletteName.textContent = 'Własna paleta';
+            renderPaletteCards();
+        }
+
+        // Bind 5 Color Pickers
+        [
+            [colorInkInput, 'colorInk'],
+            [colorSlateInput, 'colorSlate'],
+            [colorMidInput, 'colorMid'],
+            [colorSkyInput, 'colorSky'],
+            [colorHighInput, 'colorHigh']
+        ].forEach(([el, key]) => {
+            el.addEventListener('input', (e) => {
+                state[key] = e.target.value;
+                markPaletteCustom();
+                syncColorsUI();
+                execute4PassPipeline();
+            });
+        });
+
+        document.getElementById('swapMidHighBtn').addEventListener('click', () => {
+            const t = state.colorMid;
+            state.colorMid = state.colorSky;
+            state.colorSky = t;
+            markPaletteCustom();
+            syncColorsUI();
+            execute4PassPipeline();
+            showToast('Zamieniono miejscami Płytę 3 (Mgła) i Płytę 4 (Niebo)', '⇄');
+        });
+
+        document.getElementById('invertInkBtn').addEventListener('click', () => {
+            const t = state.colorInk;
+            state.colorInk = state.colorMid;
+            state.colorMid = t;
+            markPaletteCustom();
+            syncColorsUI();
+            execute4PassPipeline();
+            showToast('Odwrócono płytę tuszu i akcentu', '🌗');
+        });
+
+        // Bind Engraving Mode Buttons
+        document.querySelectorAll('.engrave-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.engraveMode = parseInt(btn.dataset.mode, 10);
+                if (state.engraveMode === 3 && state.screenToneAmount === 0) {
+                    state.screenToneAmount = STYLE_DEFAULTS[3].screenToneAmount;
+                }
+                syncSlidersUI();
+                execute4PassPipeline();
+            });
+        });
+
+        // Bind Sliders
+        function bindRange(id, key, parser = parseFloat) {
+            document.getElementById(id).addEventListener('input', (e) => {
+                state[key] = parser(e.target.value);
+                syncSlidersUI();
+                execute4PassPipeline();
+            });
+        }
+
+        bindRange('paramFlowLength', 'flowLength', parseInt);
+        bindRange('paramCarveDepth', 'carveDepth', parseInt);
+        bindRange('paramSkySplit', 'skySplit', parseInt);
+        bindRange('paramInkWeight', 'inkWeight', parseInt);
+        bindRange('paramLineThickness', 'lineThickness', parseFloat);
+        bindRange('paramSpecularPop', 'specularPop', parseInt);
+        bindRange('paramRaggedness', 'raggedness', parseInt);
+        bindRange('paramScreenToneAmount', 'screenToneAmount', parseInt);
+        bindRange('paramInkSplatter', 'inkSplatter', parseInt);
+        bindRange('paramGrainAmount', 'grainAmount', parseInt);
+        bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
+        bindRange('paramDepth', 'depthAmt', parseInt);
+        bindRange('paramShadowDetail', 'shadowDetail', parseInt);
+        bindRange('paramShadowCutoff', 'shadowCutoff', parseFloat);
+        bindRange('paramHighCutoff', 'highCutoff', parseFloat);
+
+        document.getElementById('paramFrame').addEventListener('change', (e) => {
+            state.showFrame = e.target.checked;
+            execute4PassPipeline();
+        });
+
+        document.getElementById('resetParamsBtn').addEventListener('click', () => {
+            const p = PRINTONE_PALETTES.find(x => x.id === state.activePaletteId) || PRINTONE_PALETTES[0];
+            applyPalette(p);
+            showToast(`Przywrócono domyślne ustawienia: ${p.name}`, '↺');
+        });
+
+        document.getElementById('resetStyleBtn').addEventListener('click', () => {
+            Object.assign(state, STYLE_DEFAULTS[state.engraveMode]);
+            syncSlidersUI();
+            execute4PassPipeline();
+            const styleNames = ['Komiks wektorowy', 'Plakat noir split', 'Drzeworyt', 'Rycina punktowa'];
+            showToast(`Przywrócono domyślne ustawienia: ${styleNames[state.engraveMode]}`, '↺');
+        });
+
+        // Split-Screen Comparison Slider
+        splitSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            state.splitRatio = val / 100.0;
+            splitVal.textContent = `${val}%`;
+            execute4PassPipeline();
+        });
+
+        // File Upload Listener
+        let sourceLoadToken = 0;
+        let activeSourceReader = null;
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileInput.value = '';
+            const token = ++sourceLoadToken;
+            if (activeSourceReader && activeSourceReader.readyState === FileReader.LOADING) activeSourceReader.abort();
+            const reader = new FileReader();
+            activeSourceReader = reader;
+            setProcessingStatus('Otwieram plik zdjęcia…');
+            reader.onerror = () => {
+                if (token !== sourceLoadToken) return;
+                activeSourceReader = null;
+                setProcessingStatus('Nie udało się odczytać tego pliku.', null);
+                showToast('Nie udało się odczytać zdjęcia', '⚠️');
+            };
+            reader.onabort = () => {
+                if (token === sourceLoadToken) {
+                    activeSourceReader = null;
+                    setProcessingStatus('', null, false);
+                }
+            };
+            reader.onload = (ev) => {
+                if (token !== sourceLoadToken) return;
+                const image = new Image();
+                image.onload = () => {
+                    if (token !== sourceLoadToken) return;
+                    const previousSnapshot = captureEditorSnapshot();
+                    SEG.token++;
+                    SEG.busy = false;
+                    const segBtn = document.getElementById('segBtn');
+                    if (segBtn) segBtn.disabled = false;
+                    sourceImage = image;
+                    state.fileName = file.name.replace(/\.[^/.]+$/, '');
+                    SEG.pendingPlates = null;
+                    loadSourceIntoEngine(() => {
+                        if (restoringHistory || token !== sourceLoadToken) return;
+                        recordUndoSnapshot(previousSnapshot);
+                        showToast(`Wczytano zdjęcie: ${file.name}`, '🖼️');
+                    });
+                    activeSourceReader = null;
+                };
+                image.onerror = () => {
+                    if (token !== sourceLoadToken) return;
+                    activeSourceReader = null;
+                    setProcessingStatus('Nie udało się otworzyć tego obrazu.', null);
+                    showToast('Nieobsługiwany lub uszkodzony plik obrazu', '⚠️');
+                };
+                image.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        document.getElementById('emptyStateOpenBtn').addEventListener('click', () => fileInput.click());
+
+        // Native Vectorizer Button Action (Optimizes parameters instantly to pure comic style)
+        document.getElementById('vectorizeBtn').addEventListener('click', () => {
+            state.flowLength = 98;
+            state.carveDepth = 90;
+            state.inkWeight = 94;
+            state.specularPop = 95;
+            state.shadowCutoff = 0.38;
+            syncSlidersUI();
+            execute4PassPipeline();
+            showToast('Uruchomiono wektorową abstrakcję Mignoli', '⚡');
+        });
+
+        // Initialize the editor without loading an example image.
+        window.addEventListener('DOMContentLoaded', () => {
+            initWebGL2();
+            renderPaletteCards();
+            syncColorsUI();
+            syncSlidersUI();
+            glCanvas.style.visibility = 'hidden';
+            document.getElementById('emptyState').hidden = false;
+            resolutionBadge.textContent = 'Brak obrazu';
+            document.getElementById('undoBtn').disabled = true;
+            document.getElementById('redoBtn').disabled = true;
+        });
+
+        // Format Select Listener (Show/Hide JPG Quality Slider)
+        formatSelect.addEventListener('change', () => {
+            if (formatSelect.value === 'image/jpeg') {
+                qualityContainer.classList.remove('hidden');
+            } else {
+                qualityContainer.classList.add('hidden');
+            }
+        });
+
+        // Interactive Viewport Zoom & Pan
+        let zoomLevel = 1.0;
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        const viewportContainer = document.getElementById('viewportContainer');
+        const canvasTransformWrapper = document.getElementById('canvasTransformWrapper');
+        const zoomLabel = document.getElementById('zoomLabel');
+
+        function updateViewportTransform() {
+            canvasTransformWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+            zoomLabel.textContent = `${Math.round(zoomLevel * 100)}%`;
+        }
+
+        document.getElementById('zoomInBtn').addEventListener('click', () => {
+            zoomLevel = Math.min(4.0, zoomLevel + 0.25);
+            updateViewportTransform();
+        });
+
+        document.getElementById('zoomOutBtn').addEventListener('click', () => {
+            zoomLevel = Math.max(0.5, zoomLevel - 0.25);
+            updateViewportTransform();
+        });
+
+        document.getElementById('zoomResetBtn').addEventListener('click', () => {
+            zoomLevel = 1.0;
+            panX = 0;
+            panY = 0;
+            updateViewportTransform();
+        });
+
+        viewportContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.15 : -0.15;
+            zoomLevel = Math.min(4.0, Math.max(0.5, zoomLevel + delta));
+            updateViewportTransform();
+        }, { passive: false });
+
+        viewportContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            updateViewportTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // ============================================================================
+        // AI SEMANTIC GRAPHIC NOVEL RE-ILLUSTRATION (GEMINI IMAGE-TO-IMAGE ENGINE)
+        // ============================================================================
+
+        // Eksport: ponowne przeliczenie całego potoku w docelowej rozdzielczości (bez skalowania pikseli)
+        downloadBtn.addEventListener('click', () => {
+            if (!gl || !isImageLoaded) { showToast('Najpierw wczytaj obraz', '⚠️'); return; }
+            const srcW = sourceImage.naturalWidth || sourceImage.width;
+            const srcH = sourceImage.naturalHeight || sourceImage.height;
+            const mult = parseFloat(document.getElementById('exportScale').value);
+            const k = mult > 0 ? mult : 1;
+            const maxTex = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 8192);
+            let w = Math.round(srcW * k), h = Math.round(srcH * k);
+            const fit = Math.min(1, maxTex / Math.max(w, h));
+            w = Math.round(w * fit); h = Math.round(h * fit);
+            const prevW = glCanvas.width, prevH = glCanvas.height, prevSplit = state.splitRatio;
+            state.splitRatio = 0;
+            allocatePipelineBuffers(w, h);
+            execute4PassPipeline();
+            const type = formatSelect.value;
+            const ext = type === 'image/jpeg' ? 'jpg' : 'png';
+            glCanvas.toBlob((blob) => {
+                state.splitRatio = prevSplit;
+                allocatePipelineBuffers(prevW, prevH);
+                execute4PassPipeline();
+                if (!blob) { showToast('Eksport nie powiódł się', '⚠️'); return; }
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${state.fileName || 'printone'}_${w}x${h}.${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+                showToast(`Wyeksportowano ${w} × ${h} px`, '💾');
+            }, type, parseFloat(qualitySlider.value));
+        });
+        qualitySlider.addEventListener('input', () => {
+            qualityValue.textContent = `${Math.round(qualitySlider.value * 100)}%`;
+        });
+        document.getElementById('segToggle').addEventListener('change', (e) => {
+            SEG.enabled = e.target.checked;
+            if (SEG.enabled && !SEG.ready && !SEG.busy) runSegmentation();
+            else execute4PassPipeline();
+        });
+        document.getElementById('segBtn').addEventListener('click', () => {
+            SEG.enabled = true;
+            document.getElementById('segToggle').checked = true;
+            runSegmentation();
+        });
+
+        const undoStack = [];
+        const redoStack = [];
+        const historyLimit = 100;
+        let pendingEditSnapshot = null;
+        let restoringHistory = false;
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+
+        function captureEditorSnapshot() {
+            return {
+                state: { ...state },
+                sourceImage,
+                imageLoaded: isImageLoaded,
+                segEnabled: SEG.enabled,
+                segmentPlates: SEG.items.map(item => [item.label, item.plate]),
+                format: formatSelect.value,
+                exportScale: document.getElementById('exportScale').value,
+                quality: qualitySlider.value,
+                splitValue: splitSlider.value
+            };
+        }
+
+        function snapshotsMatch(a, b) {
+            return a.sourceImage === b.sourceImage &&
+                a.imageLoaded === b.imageLoaded &&
+                a.segEnabled === b.segEnabled &&
+                JSON.stringify(a.state) === JSON.stringify(b.state) &&
+                JSON.stringify(a.segmentPlates) === JSON.stringify(b.segmentPlates) &&
+                a.format === b.format &&
+                a.exportScale === b.exportScale &&
+                a.quality === b.quality &&
+                a.splitValue === b.splitValue;
+        }
+
+        function updateHistoryButtons() {
+            undoBtn.disabled = undoStack.length === 0;
+            redoBtn.disabled = redoStack.length === 0;
+        }
+
+        function commitPendingEdit() {
+            if (restoringHistory || !pendingEditSnapshot) return;
+            const before = pendingEditSnapshot;
+            pendingEditSnapshot = null;
+            const after = captureEditorSnapshot();
+            if (snapshotsMatch(before, after)) return;
+            recordUndoSnapshot(before);
+        }
+
+        function recordUndoSnapshot(snapshot) {
+            if (restoringHistory) return;
+            undoStack.push(snapshot);
+            if (undoStack.length > historyLimit) undoStack.shift();
+            redoStack.length = 0;
+            updateHistoryButtons();
+        }
+
+        function beginPendingEdit() {
+            if (!restoringHistory && !pendingEditSnapshot) pendingEditSnapshot = captureEditorSnapshot();
+        }
+
+        function restoreEditorSnapshot(snapshot) {
+            restoringHistory = true;
+            const sourceChanged = sourceImage !== snapshot.sourceImage;
+            Object.assign(state, snapshot.state);
+            sourceImage = snapshot.sourceImage;
+            isImageLoaded = snapshot.imageLoaded;
+            SEG.enabled = snapshot.segEnabled;
+            SEG.pendingPlates = Object.fromEntries(snapshot.segmentPlates);
+            formatSelect.value = snapshot.format;
+            document.getElementById('exportScale').value = snapshot.exportScale;
+            qualitySlider.value = snapshot.quality;
+            qualityValue.textContent = `${Math.round(Number(snapshot.quality) * 100)}%`;
+            qualityContainer.classList.toggle('hidden', snapshot.format !== 'image/jpeg');
+            splitSlider.value = snapshot.splitValue;
+            splitVal.textContent = `${snapshot.splitValue}%`;
+            document.getElementById('segToggle').checked = snapshot.segEnabled;
+
+            const palette = PRINTONE_PALETTES.find(item => item.id === state.activePaletteId);
+            activePaletteName.textContent = palette ? palette.name : 'Własna paleta';
+            renderPaletteCards();
+            syncColorsUI();
+            syncSlidersUI();
+
+            if (sourceChanged) {
+                SEG.token++;
+                SEG.busy = false;
+                SEG.ready = false;
+                SEG.items = [];
+                DEPTH.ready = false;
+                if (snapshot.imageLoaded) {
+                    loadSourceIntoEngine();
+                } else {
+                    glCanvas.style.visibility = 'hidden';
+                    document.getElementById('emptyState').hidden = false;
+                    resolutionBadge.textContent = 'Brak obrazu';
+                    setProcessingStatus('', null, false);
+                    if (gl) {
+                        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                        gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+                        gl.clearColor(0.06, 0.07, 0.09, 1);
+                        gl.clear(gl.COLOR_BUFFER_BIT);
+                    }
+                }
+            } else {
+                SEG.items.forEach(item => {
+                    if (Object.prototype.hasOwnProperty.call(SEG.pendingPlates, item.label)) {
+                        item.plate = SEG.pendingPlates[item.label];
+                    }
+                });
+                SEG.pendingPlates = null;
+                renderSegList();
+                if (isImageLoaded) execute4PassPipeline();
+            }
+            restoringHistory = false;
+        }
+
+        function undoEdit() {
+            commitPendingEdit();
+            if (!undoStack.length) return;
+            redoStack.push(captureEditorSnapshot());
+            restoreEditorSnapshot(undoStack.pop());
+            updateHistoryButtons();
+        }
+
+        function redoEdit() {
+            commitPendingEdit();
+            if (!redoStack.length) return;
+            undoStack.push(captureEditorSnapshot());
+            restoreEditorSnapshot(redoStack.pop());
+            updateHistoryButtons();
+        }
+
+        function isEditableTarget(target) {
+            if (!(target instanceof Element)) return false;
+            if (target.closest('#undoBtn, #redoBtn, #zoomInBtn, #zoomOutBtn, #zoomResetBtn')) return false;
+            if (target.closest('#fileInput')) return false;
+            return Boolean(target.closest('button, input, select'));
+        }
+
+        document.addEventListener('pointerdown', event => {
+            if (isEditableTarget(event.target)) beginPendingEdit();
+        }, true);
+        document.addEventListener('keydown', event => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+                event.preventDefault();
+                if (event.shiftKey) redoEdit();
+                else undoEdit();
+                return;
+            }
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
+                event.preventDefault();
+                redoEdit();
+                return;
+            }
+            if (isEditableTarget(event.target)) beginPendingEdit();
+        }, true);
+        document.addEventListener('input', event => {
+            if (isEditableTarget(event.target)) beginPendingEdit();
+        }, true);
+        document.addEventListener('change', event => {
+            if (!isEditableTarget(event.target)) return;
+            beginPendingEdit();
+            setTimeout(commitPendingEdit, 0);
+        }, true);
+        document.addEventListener('click', event => {
+            if (!isEditableTarget(event.target)) return;
+            beginPendingEdit();
+            setTimeout(commitPendingEdit, 0);
+        }, true);
+        document.addEventListener('pointerup', commitPendingEdit, true);
+        document.addEventListener('pointercancel', commitPendingEdit, true);
+        undoBtn.addEventListener('click', undoEdit);
+        redoBtn.addEventListener('click', redoEdit);
+        updateHistoryButtons();
+    </script></body></html>
