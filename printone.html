@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
@@ -658,6 +658,14 @@
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
+                            <span class="text-white/80">Linie tuszu AI (kontury)</span>
+                            <span id="valAiLines" class="font-mono text-sky-300">35%</span>
+                        </div>
+                        <input type="range" id="paramAiLines" aria-label="Linie tuszu AI" min="0" max="100" step="1" value="35">
+                        <p id="aiLinesHelp" class="text-[9px] text-white/45"></p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
                             <span class="text-white/80">Wygładzanie granic plam</span>
                             <span id="valShapeSmooth" class="font-mono text-sky-300">60%</span>
                         </div>
@@ -729,6 +737,20 @@
                         </select>
                     </div>
                     <p id="segStatus" class="text-[10px] text-white/50 leading-snug">Model uruchomi się po wczytaniu obrazu.</p>
+                    <div class="space-y-1.5 border-t border-white/10 pt-2">
+                        <label class="flex items-center justify-between gap-2 text-[11px] text-white/80 cursor-pointer">
+                            <span>Matting postaci i włosów <span class="text-white/40">MODNet · 7 MB</span></span>
+                            <input type="checkbox" id="aiMatteToggle" class="accent-rose-500" checked>
+                        </label>
+                        <label class="flex items-center justify-between gap-2 text-[11px] text-white/80 cursor-pointer">
+                            <span>Ostre krawędzie obiektów <span class="text-white/40">SlimSAM · 14 MB</span></span>
+                            <input type="checkbox" id="aiSamToggle" class="accent-rose-500" checked>
+                        </label>
+                        <label class="flex items-center justify-between gap-2 text-[11px] text-white/80 cursor-pointer">
+                            <span>Linie tuszu <span class="text-white/40">PiDiNet · 3 MB</span></span>
+                            <input type="checkbox" id="aiEdgeToggle" class="accent-rose-500" checked>
+                        </label>
+                    </div>
                     <div id="segList" class="space-y-1.5"></div>
                     <button id="segBtn" class="glass-button w-full py-2 px-3 rounded-xl text-xs font-semibold text-white/90">Wykryj elementy ponownie</button>
                 </section>
@@ -1465,6 +1487,8 @@
         uniform float u_screenToneAmount;
         uniform float u_inkSplatter;
         uniform float u_grainAmount;
+        uniform sampler2D u_edgeTex;  // AI edge map (PiDiNet), 1 = contour
+        uniform float u_edgeAmt;      // 0 when the edge map is unavailable
 
         float hash21(vec2 p) {
             vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -1518,6 +1542,13 @@
                 comp = mix(u_pal[b2], u_pal[b1], 0.5 + 0.5 * t);
             }
 
+            if (u_edgeAmt > 0.001) {
+                float e = texture(u_edgeTex, v_uv).r;
+                float thr = 0.80 - 0.5 * u_edgeAmt;
+                float line = smoothstep(thr, thr + 0.12, e);
+                comp = mix(comp, u_pal[0], line * clamp(u_edgeAmt * 2.5, 0.0, 1.0));
+            }
+
             float aspect = u_resolution.x / max(u_resolution.y, 1.0);
             if (u_showFrame == 1) {
                 vec2 edgeDist = min(v_uv, 1.0 - v_uv);
@@ -1569,6 +1600,7 @@
                 grainAmount,
                 shapeSmooth: textured ? 0 : 58,
                 depthAmt: 65,
+                aiLines: 35,
                 shadowDetail: 74,
                 shadowCutoff: 0.36,
                 highCutoff: 0.60,
@@ -1777,7 +1809,7 @@
             inkWeight: 88,
             lineThickness: 1.5,
             specularPop: 90,
-            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70,
+            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35,
             shadowDetail: 76,
             shadowCutoff: 0.34,
             highCutoff: 0.54,
@@ -2091,6 +2123,12 @@
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_screenToneAmount'), state.screenToneAmount);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_inkSplatter'), state.inkSplatter);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_grainAmount'), state.grainAmount);
+            ensureEdgeTexture();
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, EDGE.tex);
+            gl.uniform1i(gl.getUniformLocation(progPass5, 'u_edgeTex'), 1);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_edgeAmt'), EDGE.ready ? state.aiLines / 100.0 : 0);
+            gl.activeTexture(gl.TEXTURE0);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
         }
 
@@ -2310,6 +2348,294 @@
             });
         }
 
+        // Extra AI models, all run in one module worker: MODNet matting, SlimSAM object masks, PiDiNet contour lines.
+        const EDGE = { ready: false, tex: null };
+        const AI = { call: null };
+        function ensureEdgeTexture() {
+            if (EDGE.tex) return;
+            EDGE.tex = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, EDGE.tex);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 1, 1, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array([0]));
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        }
+
+        function uploadEdgeMap(edge) {
+            ensureEdgeTexture();
+            gl.bindTexture(gl.TEXTURE_2D, EDGE.tex);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, edge.width, edge.height, 0, gl.RED, gl.UNSIGNED_BYTE, edge.data);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+            EDGE.ready = true;
+        }
+
+        function aiWorkerMain() {
+            const TJS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+            const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.mjs';
+            const EDGE_URL = 'https://huggingface.co/bdck/PiDiNet_ONNX/resolve/main/pidinet_table5.onnx';
+            let lib = null, matte = null, sam = null, edge = null;
+
+            async function getLib() {
+                if (!lib) lib = await import(TJS);
+                return lib;
+            }
+
+            async function fetchCached(url, stage) {
+                let cache = null;
+                try { cache = await caches.open('printone-models'); } catch (e) { cache = null; }
+                if (cache) {
+                    const hit = await cache.match(url);
+                    if (hit) return new Uint8Array(await hit.arrayBuffer());
+                }
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const total = Number(res.headers.get('content-length')) || 0;
+                const reader = res.body.getReader();
+                const chunks = [];
+                let loaded = 0;
+                for (;;) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    chunks.push(value);
+                    loaded += value.length;
+                    if (total) self.postMessage({ stage, progress: { file: url.split('/').pop(), progress: loaded / total * 100 } });
+                }
+                const blob = new Blob(chunks);
+                if (cache) { try { await cache.put(url, new Response(blob)); } catch (e) { /* cache is optional */ } }
+                return new Uint8Array(await blob.arrayBuffer());
+            }
+
+            async function runMatte(image, stage) {
+                const L = await getLib();
+                if (!matte) {
+                    matte = {
+                        model: await L.AutoModel.from_pretrained('Xenova/modnet', { dtype: 'q8', progress_callback: (p) => self.postMessage({ stage, progress: p }) }),
+                        processor: await L.AutoProcessor.from_pretrained('Xenova/modnet')
+                    };
+                }
+                const img = await L.RawImage.fromURL(image);
+                const { pixel_values } = await matte.processor(img);
+                const { output } = await matte.model({ input: pixel_values });
+                const m = await L.RawImage.fromTensor(output[0].mul(255).to('uint8')).resize(img.width, img.height);
+                const data = new Uint8Array(m.data);
+                return { result: { width: m.width, height: m.height, data }, transfer: [data.buffer] };
+            }
+
+            async function runSam(image, stage) {
+                const L = await getLib();
+                if (!sam) {
+                    sam = {
+                        model: await L.SamModel.from_pretrained('Xenova/slimsam-77-uniform', { dtype: 'q8', progress_callback: (p) => self.postMessage({ stage, progress: p }) }),
+                        processor: await L.AutoProcessor.from_pretrained('Xenova/slimsam-77-uniform')
+                    };
+                }
+                const img = await L.RawImage.fromURL(image);
+                const W = img.width, H = img.height;
+                const grid = 5;
+                const first = await sam.processor(img, { input_points: [[[W * 0.1, H * 0.1]]] });
+                const emb = await sam.model.get_image_embeddings(first);
+                const sx = first.input_points.data[0] / (W * 0.1), sy = first.input_points.data[1] / (H * 0.1);
+                const kept = [];
+                const area = W * H;
+                for (let gy = 0; gy < grid; gy++) {
+                    for (let gx = 0; gx < grid; gx++) {
+                        const x = (gx + 0.5) / grid * W, y = (gy + 0.5) / grid * H;
+                        const pts = new L.Tensor('float32', new Float32Array([x * sx, y * sy]), [1, 1, 1, 2]);
+                        const lab = new L.Tensor('int64', new BigInt64Array([1n]), [1, 1, 1]);
+                        const out = await sam.model({ ...emb, input_points: pts, input_labels: lab });
+                        const masks = await sam.processor.post_process_masks(out.pred_masks, first.original_sizes, first.reshaped_input_sizes);
+                        const iou = out.iou_scores.data;
+                        const md = masks[0].data;
+                        const order = [0, 1, 2].sort((a, b) => iou[b] - iou[a]);
+                        for (const k of order) {
+                            if (iou[k] < 0.7) continue;
+                            const slice = md.subarray(k * area, (k + 1) * area);
+                            let n = 0;
+                            for (let i = 0; i < area; i++) if (slice[i]) n++;
+                            if (n < area * 0.01 || n > area * 0.65) continue;
+                            let dup = false;
+                            for (const o of kept) {
+                                let inter = 0;
+                                for (let i = 0; i < area; i++) if (slice[i] && o.data[i]) inter++;
+                                if (inter / (n + o.n - inter) > 0.7) { dup = true; break; }
+                            }
+                            if (!dup) {
+                                const data = new Uint8Array(area);
+                                for (let i = 0; i < area; i++) data[i] = slice[i] ? 255 : 0;
+                                kept.push({ data, n });
+                            }
+                            break;
+                        }
+                    }
+                }
+                const masks = kept.map(k => k.data);
+                return { result: { width: W, height: H, masks }, transfer: masks.map(m => m.buffer) };
+            }
+
+            async function runEdge(image, stage) {
+                if (!edge) {
+                    const ort = await import(ORT);
+                    ort.env.wasm.numThreads = 1;
+                    const [bytes, weights] = await Promise.all([fetchCached(EDGE_URL, stage), fetchCached(EDGE_URL + '.data', stage)]);
+                    edge = {
+                        ort,
+                        session: await ort.InferenceSession.create(bytes, {
+                            executionProviders: ['wasm'],
+                            externalData: [{ path: 'pidinet_table5.onnx.data', data: weights }]
+                        })
+                    };
+                }
+                const bmp = await createImageBitmap(await (await fetch(image)).blob());
+                const EW = Math.max(64, Math.round(bmp.width / 8) * 8), EH = Math.max(64, Math.round(bmp.height / 8) * 8);
+                const cv = new OffscreenCanvas(EW, EH);
+                const ctx = cv.getContext('2d');
+                ctx.drawImage(bmp, 0, 0, EW, EH);
+                const px = ctx.getImageData(0, 0, EW, EH).data;
+                const plane = EW * EH, input = new Float32Array(3 * plane);
+                const mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225];
+                for (let i = 0; i < plane; i++) {
+                    for (let c = 0; c < 3; c++) input[c * plane + i] = (px[i * 4 + c] / 255 - mean[c]) / std[c];
+                }
+                const res = await edge.session.run({ [edge.session.inputNames[0]]: new edge.ort.Tensor('float32', input, [1, 3, EH, EW]) });
+                const raw = (res.fused || res[edge.session.outputNames[edge.session.outputNames.length - 1]]).data;
+                let logits = false;
+                for (let i = 0; i < plane; i++) if (raw[i] < 0 || raw[i] > 1) { logits = true; break; }
+                // Relative to the median background level, with a floor on the span so flat photos don't amplify noise into lines
+                const prob = new Float32Array(plane), bins = new Uint32Array(1024);
+                for (let i = 0; i < plane; i++) {
+                    const v = Math.min(1, Math.max(0, logits ? 1 / (1 + Math.exp(-raw[i])) : raw[i]));
+                    prob[i] = v;
+                    bins[Math.min(1023, Math.floor(v * 1024))]++;
+                }
+                const pct = (q) => { let acc = 0; for (let b = 0; b < 1024; b++) { acc += bins[b]; if (acc >= q * plane) return (b + 1) / 1024; } return 1; };
+                const base = pct(0.5), top = pct(0.995), span = Math.max(top - base, 0.2);
+                const data = new Uint8Array(plane);
+                for (let i = 0; i < plane; i++) data[i] = Math.round(Math.min(1, Math.max(0, (prob[i] - base) / span)) * 255);
+                return { result: { width: EW, height: EH, data }, transfer: [data.buffer] };
+            }
+
+            self.onmessage = async (e) => {
+                const { id, task, image, stage } = e.data;
+                try {
+                    const fn = task === 'matte' ? runMatte : (task === 'sam' ? runSam : runEdge);
+                    const { result, transfer } = await fn(image, stage);
+                    self.postMessage({ id, result }, transfer);
+                } catch (err) {
+                    self.postMessage({ id, error: String(err && err.message || err) });
+                }
+            };
+        }
+
+        function createAiWorker() {
+            const url = URL.createObjectURL(new Blob([`(${aiWorkerMain.toString()})();`], { type: 'text/javascript' }));
+            const worker = new Worker(url, { type: 'module' });
+            const pending = new Map();
+            let nextId = 1;
+            worker.onmessage = (e) => {
+                if (e.data.progress) { modelProgress(e.data.stage || 'Pobieranie modelu')(e.data.progress); return; }
+                const job = pending.get(e.data.id);
+                if (!job) return;
+                pending.delete(e.data.id);
+                if (e.data.error) job.reject(new Error(e.data.error)); else job.resolve(e.data.result);
+            };
+            worker.onerror = (e) => {
+                pending.forEach(job => job.reject(new Error(e.message || 'Worker error')));
+                pending.clear();
+                AI.call = null;
+                worker.terminate();
+            };
+            return (task, image, stage) => new Promise((resolve, reject) => {
+                const id = nextId++;
+                pending.set(id, { resolve, reject });
+                worker.postMessage({ id, task, image, stage });
+            });
+        }
+
+        async function aiStage(cache, task, dataUrl, label, mb) {
+            if (cache[task]) return cache[task];
+            try {
+                setSegStatus(`${label} (jednorazowo ok. ${mb} MB)…`);
+                setProcessingStatus(`${label}…`);
+                if (!AI.call) AI.call = createAiWorker();
+                cache[task] = await AI.call(task, dataUrl, label);
+                return cache[task];
+            } catch (err) {
+                console.error(`${task} failed:`, err);
+                return null;
+            }
+        }
+
+        function resampleMask(data, w, h, W, H) {
+            if (w === W && h === H) return data;
+            const out = new Uint8Array(W * H);
+            for (let y = 0; y < H; y++) {
+                const sy = Math.min(h - 1, Math.floor(y * h / H));
+                for (let x = 0; x < W; x++) out[y * W + x] = data[sy * w + Math.min(w - 1, Math.floor(x * w / W))];
+            }
+            return out;
+        }
+
+        // MODNet alpha replaces the coarse person mask (hair!), SlimSAM masks snap class regions to real object borders
+        function refineWithAI(found, W, H, matte, sam) {
+            const total = W * H;
+            found.forEach(s => { s.mask = Uint8Array.from(s.mask); });
+            const person = found.find(s => s.label === 'person');
+            if (matte && person) {
+                const a = resampleMask(matte.data, matte.width, matte.height, W, H);
+                let inter = 0, uni = 0;
+                for (let i = 0; i < total; i++) {
+                    const m = a[i] > 127, p = person.mask[i] > 127;
+                    if (m && p) inter++;
+                    if (m || p) uni++;
+                }
+                if (uni && inter / uni >= 0.5) {
+                    for (const s of found) {
+                        if (s === person) continue;
+                        for (let i = 0; i < total; i++) if (a[i]) s.mask[i] = Math.round(s.mask[i] * (1 - a[i] / 255));
+                    }
+                    person.mask = Uint8Array.from(a);
+                    person.matted = true;
+                }
+            }
+            if (sam && sam.masks.length) {
+                const sm = sam.masks.map(m => resampleMask(m, sam.width, sam.height, W, H));
+                const assign = sm.map(sd => {
+                    let area = 0;
+                    const cnt = new Array(found.length).fill(0);
+                    for (let i = 0; i < total; i++) {
+                        if (sd[i] <= 127) continue;
+                        area++;
+                        for (let k = 0; k < found.length; k++) if (found[k].mask[i] > 127) cnt[k]++;
+                    }
+                    let best = -1, bc = 0;
+                    cnt.forEach((c, k) => { if (c > bc) { bc = c; best = k; } });
+                    return best >= 0 && area && bc / area >= 0.55 && !found[best].matted ? best : -1;
+                });
+                found.forEach((s, k) => {
+                    if (s.matted) return;
+                    sm.forEach((sd, j) => {
+                        if (assign[j] < 0 || assign[j] === k) return;
+                        for (let i = 0; i < total; i++) if (sd[i] > 127) s.mask[i] = 0;
+                    });
+                    sm.forEach((sd, j) => {
+                        if (assign[j] !== k) return;
+                        for (let i = 0; i < total; i++) if (sd[i] > 127) s.mask[i] = 255;
+                    });
+                });
+            }
+            found.forEach(s => {
+                let n = 0;
+                for (let i = 0; i < total; i++) if (s.mask[i] > 127) n++;
+                s.frac = n / total;
+            });
+            return found.filter(s => s.frac >= 0.004);
+        }
+
         async function runSegmentation() {
             if (!SEG.enabled || !isImageLoaded || SEG.busy) return;
             const token = ++SEG.token;
@@ -2336,16 +2662,29 @@
                 c.width = Math.max(8, Math.round(iw * r));
                 c.height = Math.max(8, Math.round(ih * r));
                 c.getContext('2d').drawImage(sourceImage, 0, 0, c.width, c.height);
-                const out = await SEG.pipe(c.toDataURL('image/jpeg', 0.92));
+                const sel2 = document.getElementById('segModel');
+                if (!SEG.cache || SEG.cache.img !== sourceImage) SEG.cache = { img: sourceImage };
+                const cache = SEG.cache;
+                if (cache.segModel !== sel2.value) { cache.segModel = sel2.value; cache.seg = null; }
+                const dataUrl = c.toDataURL('image/jpeg', 0.92);
+                const out = cache.seg || (cache.seg = await SEG.pipe(dataUrl));
                 if (token !== SEG.token) return;
 
                 const W = out[0].mask.width, H = out[0].mask.height;
                 const total = W * H;
-                const found = out.map(o => {
+                let found = out.map(o => {
                     let n = 0; const d = o.mask.data;
                     for (let i = 0; i < total; i++) if (d[i] > 127) n++;
                     return { label: o.label, frac: n / total, mask: d };
                 }).filter(s => s.frac >= 0.004).sort((a, b) => b.frac - a.frac).slice(0, 8);
+
+                const useMatte = document.getElementById('aiMatteToggle').checked;
+                const useSam = document.getElementById('aiSamToggle').checked;
+                const matteRes = useMatte ? await aiStage(cache, 'matte', dataUrl, 'Matting postaci (MODNet)', 7) : null;
+                if (token !== SEG.token) return;
+                const samRes = useSam ? await aiStage(cache, 'sam', dataUrl, 'Ostre krawędzie obiektów (SlimSAM)', 14) : null;
+                if (token !== SEG.token) return;
+                if (matteRes || samRes) found = refineWithAI(found, W, H, matteRes, samRes);
 
                 const d0 = new Uint8Array(total * 4), d1 = new Uint8Array(total * 4);
                 found.forEach((s, k) => {
@@ -2387,6 +2726,15 @@
                 renderSegList();
                 setSegStatus(`Wykryto ${SEG.items.length} elementów — przypisz im płyty koloru`);
                 execute4PassPipeline();
+                if (document.getElementById('aiEdgeToggle').checked) {
+                    const edgeRes = await aiStage(cache, 'edge', dataUrl, 'Linie tuszu (PiDiNet)', 3);
+                    if (token !== SEG.token) return;
+                    if (edgeRes) uploadEdgeMap(edgeRes); else EDGE.ready = false;
+                } else {
+                    EDGE.ready = false;
+                }
+                execute4PassPipeline();
+                syncSlidersUI();
                 await runDepth(token);
                 if (DEPTH.ready) setSegStatus(`Wykryto ${SEG.items.length} elementów + mapa głębi — przypisz im płyty koloru`);
                 if (token === SEG.token) setProcessingStatus('', null, false);
@@ -2406,10 +2754,15 @@
                     if (btn) btn.disabled = false;
                     const modelSel = document.getElementById('segModel');
                     if (modelSel) modelSel.disabled = false;
+                    if (SEG.rerun) { SEG.rerun = false; setTimeout(runSegmentation, 0); }
                 }
             }
         }
         document.addEventListener('change', (e) => {
+            if (['aiMatteToggle', 'aiSamToggle', 'aiEdgeToggle'].includes(e.target.id)) {
+                if (SEG.busy) SEG.rerun = true; else if (isImageLoaded) runSegmentation();
+                return;
+            }
             if (e.target.id !== 'segModel' || SEG.busy) return;
             if (SEG.worker) { SEG.worker.terminate(); SEG.worker = null; }
             SEG.pipe = null;
@@ -2490,6 +2843,7 @@
                     SEG.busy = false;
                     SEG.ready = false;
                     DEPTH.ready = false;
+                    EDGE.ready = false;
                     SEG.items = [];
                     renderSegList();
                     syncSlidersUI();
@@ -3033,6 +3387,12 @@
                 : 'Wygładza granice kolorowych obszarów w trybach komiksowych.';
             document.getElementById('paramDepth').value = state.depthAmt;
             document.getElementById('valDepth').textContent = `${state.depthAmt}%`;
+            document.getElementById('paramAiLines').value = state.aiLines;
+            document.getElementById('valAiLines').textContent = `${state.aiLines}%`;
+            document.getElementById('paramAiLines').disabled = !EDGE.ready;
+            document.getElementById('aiLinesHelp').textContent = EDGE.ready
+                ? 'Kontury z modelu PiDiNet rysowane tuszem; im więcej, tym więcej drobnych linii.'
+                : 'Niedostępne do czasu wykrycia linii (włącz „Linie tuszu” w sekcji AI).';
             document.getElementById('paramDepth').disabled = !DEPTH.ready;
             document.getElementById('depthHelp').textContent = DEPTH.ready
                 ? 'Mapa głębi gotowa — reguluje rozjaśnianie dalszych planów.'
@@ -3149,6 +3509,7 @@
         bindRange('paramGrainAmount', 'grainAmount', parseInt);
         bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
         bindRange('paramDepth', 'depthAmt', parseInt);
+        bindRange('paramAiLines', 'aiLines', parseInt);
         bindRange('paramShadowDetail', 'shadowDetail', parseInt);
         bindRange('paramShadowCutoff', 'shadowCutoff', parseFloat);
         bindRange('paramHighCutoff', 'highCutoff', parseFloat);
@@ -3464,6 +3825,7 @@
                 SEG.ready = false;
                 SEG.items = [];
                 DEPTH.ready = false;
+                EDGE.ready = false;
                 if (snapshot.imageLoaded) {
                     loadSourceIntoEngine();
                 } else {
