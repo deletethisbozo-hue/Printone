@@ -1,0 +1,46 @@
+{
+  "name": "printone",
+  "version": "1.0.0",
+  "description": "Printone — studio ilustracji plakatowej",
+  "main": "main.js",
+  "author": "Printone",
+  "license": "UNLICENSED",
+  "scripts": {
+    "prepare-app": "node scripts/prepare.js",
+    "start": "node scripts/prepare.js && electron .",
+    "record": "node scripts/prepare.js && electron . --record",
+    "dist": "node scripts/prepare.js && electron-builder --win --publish never nsis"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "app.printone.desktop",
+    "productName": "Printone",
+    "files": [
+      "main.js",
+      "app/**"
+    ],
+    "extraResources": [
+      {
+        "from": "models",
+        "to": "models"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
