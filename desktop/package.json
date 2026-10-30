@@ -9,7 +9,7 @@
     "prepare-app": "node scripts/prepare.js",
     "start": "node scripts/prepare.js && electron .",
     "record": "node scripts/prepare.js && electron . --record",
-    "dist": "node scripts/prepare.js && electron-builder --win --publish never nsis"
+    "dist": "node scripts/prepare.js && electron-builder --win --publish never"
   },
   "devDependencies": {
     "electron": "^33.2.0",
