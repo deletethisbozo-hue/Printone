@@ -67,9 +67,7 @@ function serveApp(request) {
   const file = path.normalize(path.join(APP_DIR, rel));
   if (!file.startsWith(APP_DIR) || !fs.existsSync(file)) return new Response('Not found', { status: 404 });
   return new Response(fs.readFileSync(file), { headers: {
-    'content-type': MIME[path.extname(file)] || 'application/octet-stream',
-    'cross-origin-opener-policy': 'same-origin',
-    'cross-origin-embedder-policy': 'credentialless'
+    'content-type': MIME[path.extname(file)] || 'application/octet-stream'
   } });
 }
 
