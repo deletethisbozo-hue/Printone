@@ -854,6 +854,13 @@
                     </div>
                     <div>
                         <label class="flex items-center justify-between text-xs cursor-pointer">
+                            <span class="text-white/80">Rycina piórem (linie + punktowanie)</span>
+                            <input type="checkbox" id="penInkToggle" class="accent-rose-500">
+                        </label>
+                        <p class="text-[9px] text-white/45">Płaskie plamy, cienkie linie detalu, szrafura wzdłuż formy i punktowanie jak w rycinie.</p>
+                    </div>
+                    <div>
+                        <label class="flex items-center justify-between text-xs cursor-pointer">
                             <span class="text-white/80">Twardy tusz (binaryzacja)</span>
                             <input type="checkbox" id="hardInkToggle" class="accent-rose-500">
                         </label>
@@ -1634,6 +1641,7 @@
         uniform float u_printAmt;
         uniform float u_origPal;
         uniform float u_hardInk;
+        uniform float u_penInk;
         uniform sampler2D u_sketchTex; // AI line-art model output, 1 = line
         uniform float u_sketchAmt;
 
@@ -1877,6 +1885,40 @@
                 inkM = max(inkM, solid);
                 vec3 snapped = u_pal[nearestPlate(comp)];
                 comp = mix(comp, mix(snapped, u_pal[0], inkM), u_hardInk);
+            }
+            if (u_penInk > 0.01) {
+                // Pen engraving: flat plates + multi-scale fine-detail ink + tone-driven flow hatching + stipple
+                vec2 pxs = vec2(px0) / u_resolution;
+                float lc = lumAt(v_uv);
+                float f1 = 0.0, f2 = 0.0, f3 = 0.0;
+                for (int n = 0; n < 8; n++) {
+                    float a = float(n) * 0.7854 + 0.2;
+                    vec2 d = vec2(cos(a), sin(a)) * pxs;
+                    f1 += lumAt(v_uv + d * 1.6);
+                    f2 += lumAt(v_uv + d * 4.5);
+                    f3 += lumAt(v_uv + d * 12.0);
+                }
+                f1 /= 8.0; f2 /= 8.0; f3 /= 8.0;
+                float pl0 = dot(u_pal[0], vec3(0.2126, 0.7152, 0.0722));
+                float pl4 = dot(u_pal[4], vec3(0.2126, 0.7152, 0.0722));
+                float pb = dot(comp, vec3(0.2126, 0.7152, 0.0722));
+                float tp = clamp((pb - pl0) / max(pl4 - pl0, 0.05), 0.0, 1.0);
+                vec3 flatC = u_pal[nearestPlate(comp)];
+                // fine strokes: pixels darker than their surround at three scales
+                float dd = 0.5 * (f1 - lc) + 0.8 * (f2 - lc) + 0.5 * (f3 - lc);
+                float fine = smoothstep(0.035, 0.075, dd + (0.5 - tp) * 0.03);
+                // tone hatching: continuous lines flowing along the form, density follows darkness
+                float lmp = 0.5 * (f2 + f3);
+                float dkp = clamp((0.80 - lmp) / 0.65, 0.0, 1.0);
+                float zh = flowHatch(v_uv, pxs * u_resolution / px0, 0.0, 23.0, 1.7, 0.9, 0.6);
+                float hh = 1.0 - smoothstep(-0.15, 0.15, zh - (dkp * 2.4 - 1.5));
+                hh *= smoothstep(0.1, 0.3, dkp) * (1.0 - smoothstep(0.78, 0.95, dkp));
+                // stipple spray where ink thins out
+                float sn = hash21(floor(v_uv * u_resolution / (px0 * 1.3)));
+                float stip = step(1.0 - 0.22 * smoothstep(0.55, 0.9, dkp) * (1.0 - smoothstep(0.9, 1.0, dkp)), sn);
+                float solidP = smoothstep(0.82, 0.95, dkp);
+                float inkP = clamp(max(max(fine * 0.95, hh), max(stip, solidP)), 0.0, 1.0);
+                comp = mix(comp, mix(flatC, u_pal[0], inkP), u_penInk);
             }
             if (u_origPal > 0.5) {
                 // Original-colour mode: keep all plate/hatch/line/print structure, take hue from the photo
@@ -2574,6 +2616,7 @@
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchTh'), 0.4 + state.hatchThick / 100.0 * 1.4);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchAng'), state.hatchAngle * Math.PI / 180);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchCross'), state.hatchCross / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_penInk'), document.getElementById('penInkToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hardInk'), document.getElementById('hardInkToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_origPal'), document.getElementById('origPalToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchFlow'), state.hatchFlow / 100.0);
@@ -4197,6 +4240,7 @@
         bindRange('paramInkSplatter', 'inkSplatter', parseInt);
         bindRange('paramGrainAmount', 'grainAmount', parseInt);
         document.getElementById('paperTexToggle').addEventListener('change', () => execute4PassPipeline());
+        document.getElementById('penInkToggle').addEventListener('change', () => execute4PassPipeline());
         document.getElementById('hardInkToggle').addEventListener('change', () => execute4PassPipeline());
         document.getElementById('origPalToggle').addEventListener('change', () => execute4PassPipeline());
         bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
