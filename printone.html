@@ -764,6 +764,12 @@
                         <input type="range" id="paramHighCutoff" aria-label="Próg jasnych płyt" min="0.25" max="0.92" step="0.01" value="0.54">
                     </div>
 
+                    <div class="pt-2 border-t border-white/10">
+                        <div class="text-xs text-white/80 mb-1">Udział kolorów w obrazie (jak gradient map)</div>
+                        <div id="shareBox" class="space-y-2"></div>
+                        <p class="text-[9px] text-white/45">Każdy suwak = ile zakresu tonalnego (od cieni do świateł) przejmuje dany kolor palety. Równe wartości = ustawienie domyślne.</p>
+                    </div>
+
                     <div class="flex items-center justify-between pt-2 border-t border-white/10">
                         <span class="text-xs text-white/80">Rytowana ramka ryciny (Woodblock Border)</span>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -1301,6 +1307,7 @@
         uniform float u_shadowDetail;
         uniform float u_shadowCutoff;
         uniform float u_highCutoff;
+        uniform vec4 u_toneB;
         uniform bool u_showFrame;
         uniform float u_splitRatio;
 
@@ -1355,6 +1362,17 @@
 
             vec4 p3 = texture(u_pass3Tex, v_uv);
             float luma      = texture(u_lutTex, vec2(clamp(p3.r, 0.0, 1.0) * (255.0 / 256.0) + 0.5 / 256.0, 0.5)).r;
+            {
+                // Per-colour share of the tonal range: boundaries c0..c3 are mapped back to the nominal 0.2/0.4/0.6/0.8 steps
+                float c0 = u_toneB.x, c1 = u_toneB.y, c2 = u_toneB.z, c3 = u_toneB.w;
+                float y;
+                if (luma < c0) y = luma / max(c0, 1e-4) * 0.2;
+                else if (luma < c1) y = 0.2 + (luma - c0) / max(c1 - c0, 1e-4) * 0.2;
+                else if (luma < c2) y = 0.4 + (luma - c1) / max(c2 - c1, 1e-4) * 0.2;
+                else if (luma < c3) y = 0.6 + (luma - c2) / max(c3 - c2, 1e-4) * 0.2;
+                else y = 0.8 + (luma - c3) / max(1.0 - c3, 1e-4) * 0.2;
+                luma = y;
+            }
             float specScore = p3.g;
             float rimShard  = p3.b;
             float texField  = p3.a;
@@ -1759,6 +1777,7 @@
                 hatchThick: 50,
                 hatchAngle: 45,
                 hatchCross: 55,
+                shareInk: 20, shareSlate: 20, shareMid: 20, shareSky: 20, shareHigh: 20,
                 aiLineThick: 50,
                 sketchLines: 40,
                 shadowDetail: 74,
@@ -2064,7 +2083,7 @@
             inkWeight: 88,
             lineThickness: 1.5,
             specularPop: 90,
-            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35, xdogLines: 0, detailAmt: 60, hatchAmt: 45, hatchDensity: 55, hatchThick: 50, hatchAngle: 45, hatchCross: 55, aiLineThick: 50, sketchLines: 40,
+            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35, xdogLines: 0, detailAmt: 60, hatchAmt: 45, hatchDensity: 55, hatchThick: 50, hatchAngle: 45, hatchCross: 55, aiLineThick: 50, shareInk: 20, shareSlate: 20, shareMid: 20, shareSky: 20, shareHigh: 20, sketchLines: 40,
             shadowDetail: 76,
             shadowCutoff: 0.34,
             highCutoff: 0.54,
@@ -2347,6 +2366,13 @@
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_shadowDetail'), state.shadowDetail);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_shadowCutoff'), state.shadowCutoff);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_highCutoff'), state.highCutoff);
+            {
+                const w = [state.shareInk, state.shareSlate, state.shareMid, state.shareSky, state.shareHigh].map(v => Math.max(v, 3));
+                const tot = w.reduce((a, b) => a + b, 0);
+                let acc = 0;
+                const b = [0, 1, 2, 3].map(i => (acc += w[i], acc / tot));
+                gl.uniform4f(gl.getUniformLocation(progPass4, 'u_toneB'), b[0], b[1], b[2], b[3]);
+            }
             gl.uniform1i(gl.getUniformLocation(progPass4, 'u_showFrame'), state.showFrame ? 1 : 0);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_splitRatio'), state.splitRatio);
 
@@ -3833,6 +3859,14 @@
             document.getElementById('paramDetail').value = state.detailAmt;
             document.getElementById('valDetail').textContent = `${state.detailAmt}%`;
             document.getElementById('paramHatch').value = state.hatchAmt;
+            if (typeof SHARE_KEYS !== 'undefined') {
+                const tot = SHARE_KEYS.reduce((a, [k]) => a + Math.max(state[k], 3), 0);
+                SHARE_KEYS.forEach(([k, c], i) => {
+                    document.getElementById('share' + i).value = state[k];
+                    document.getElementById('shareVal' + i).textContent = `${Math.round(Math.max(state[k], 3) / tot * 100)}%`;
+                    document.getElementById('shareSw' + i).style.background = state[c];
+                });
+            }
             [['HatchDensity', 'hatchDensity', '%'], ['HatchThick', 'hatchThick', '%'], ['HatchAngle', 'hatchAngle', '°'], ['HatchCross', 'hatchCross', '%'], ['AiThick', 'aiLineThick', '%']].forEach(([id, key, u]) => {
                 document.getElementById('param' + id).value = state[key];
                 document.getElementById('val' + id).textContent = `${state[key]}${u}`;
@@ -3881,7 +3915,7 @@
             state.colorMid = p.mid;
             state.colorSky = p.sky;
             state.colorHigh = p.high;
-            if (p.preset) Object.assign(state, p.preset);
+            if (p.preset) Object.assign(state, { shareInk: 20, shareSlate: 20, shareMid: 20, shareSky: 20, shareHigh: 20 }, p.preset);
 
             activePaletteName.textContent = p.name;
             renderPaletteCards();
@@ -3959,6 +3993,20 @@
                 execute4PassPipeline();
             });
         }
+
+        var SHARE_KEYS = [['shareInk', 'colorInk'], ['shareSlate', 'colorSlate'], ['shareMid', 'colorMid'], ['shareSky', 'colorSky'], ['shareHigh', 'colorHigh']];
+        const shareBox = document.getElementById('shareBox');
+        SHARE_KEYS.forEach(([key], i) => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2';
+            row.innerHTML = `<span id="shareSw${i}" class="w-3 h-3 rounded-sm border border-white/30 shrink-0"></span><input type="range" id="share${i}" aria-label="Udział koloru ${i + 1}" min="0" max="60" step="1" value="20" class="flex-1"><span id="shareVal${i}" class="font-mono text-[10px] text-purple-300 w-8 text-right"></span>`;
+            shareBox.appendChild(row);
+            row.querySelector('input').addEventListener('input', (e) => {
+                state[key] = parseInt(e.target.value);
+                syncSlidersUI();
+                execute4PassPipeline();
+            });
+        });
 
         bindRange('paramFlowLength', 'flowLength', parseInt);
         bindRange('paramCarveDepth', 'carveDepth', parseInt);
