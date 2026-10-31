@@ -1734,18 +1734,24 @@
                     lm = 0.5 * (lm / 8.0 + lL);
                     float dk = pow(clamp((0.72 - lm) / 0.6, 0.0, 1.0), 1.2);
                     float fade = smoothstep(0.03, 0.14, lm);
-                    float bend = u_hatchFlow * 0.04;
+                    float lmB = 0.0;
+                    for (int n3 = 0; n3 < 12; n3++) {
+                        float a3 = float(n3) * 0.5236;
+                        lmB += lumAt(v_uv + vec2(cos(a3), sin(a3)) * 38.0 * ts) + lumAt(v_uv + vec2(cos(a3 + 0.26), sin(a3 + 0.26)) * 70.0 * ts);
+                    }
+                    lmB /= 24.0;
+                    float bend = u_hatchFlow;
                     vec2 pw = p + vec2(valueNoise(p * 0.012), valueNoise(p * 0.012 + 9.1)) * sp * 2.0 * 0.5;
                     float h = 0.0;
                     for (int L = 0; L < 2; L++) {
                         float ang = u_hatchAng + (L == 1 ? 1.5708 : 0.0);
                         vec2 nv = vec2(-sin(ang), cos(ang));
                         float spL = sp * (L == 1 ? 1.15 : 1.0);
-                        float s = dot(pw, nv) / spL + lm * bend * 60.0 / spL * 8.0;
+                        float s = dot(pw, nv) / spL + (lmB * 9.0 + lm * 2.5) * bend * (L == 1 ? -1.0 : 1.0);
                         float fr = abs(fract(s) - 0.5) * 2.0;
                         float amt = L == 0 ? dk * (0.5 + u_hatchAmt * 1.2)
                                            : clamp((dk - (1.0 - u_hatchCross) * 0.35 - 0.35) * 2.5, 0.0, 1.0) * u_hatchAmt * 1.6;
-                        float w = clamp(amt, 0.0, 1.0) * u_hatchTh * 0.4;
+                        float w = clamp(amt, 0.0, 1.0) * u_hatchTh * 0.5;
                         float aa = 0.12;
                         h = max(h, (1.0 - smoothstep(1.0 - w - aa, 1.0 - w + aa, fr)) * step(0.02, amt));
                     }
