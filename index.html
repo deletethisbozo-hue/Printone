@@ -2078,20 +2078,20 @@
                 float wob = 0.6 * valueNoise(vec2(along * 38.0, 3.7)) + 0.4 * valueNoise(vec2(along * 110.0, 5.3));
                 if (b < 0.0) {
                     comp = voidC;
-                } else if (u_frameStyle == 1) {
+                } else if (u_frameStyle == 1) { if (b < 0.019) comp = voidC;
                     // double rule: heavy line + hairline
                     if (b < 0.010) comp = inkF; else if (b > 0.016 && b < 0.019) comp = accF;
-                } else if (u_frameStyle == 2) {
+                } else if (u_frameStyle == 2) { if (b < 0.035) comp = voidC;
                     // woodcut slab: thick block with inner rule
                     if (b < 0.026) comp = inkF; else if (b > 0.032 && b < 0.035) comp = inkF;
                 } else if (u_frameStyle == 3) {
                     // hand-cut: uneven inner and outer edge
-                    float th = 0.013 + 0.007 * wob;
+                    float th = 0.013 + 0.007 * wob; if (b < th + 0.013) comp = voidC;
                     if (b < th) comp = inkF;
                     else if (b > th + 0.006 && b < th + 0.009 + 0.004 * valueNoise(vec2(along * 45.0, 8.1))) comp = accF;
                 } else if (u_frameStyle == 4) {
                     // chequer band
-                    float cs = 0.011;
+                    float cs = 0.011; if (b < 0.029) comp = voidC;
                     if (b < 0.022) {
                         float ck = mod(floor(along / cs) + floor(b / cs), 2.0);
                         comp = ck < 0.5 ? inkF : voidC;
@@ -2100,12 +2100,12 @@
                 } else if (u_frameStyle == 5) {
                     // passe-partout: clean void with a hairline
                     if (b < 0.003) comp = inkF;
-                } else if (u_frameStyle == 6) {
+                } else if (u_frameStyle == 6) { if (b < 0.020) comp = voidC;
                     // dashed rule over a solid rule
                     if (b < 0.004) comp = inkF;
                     else if (b > 0.010 && b < 0.020 && fract(along / 0.03) < 0.62) comp = inkF;
                 } else {
-                    if (b < 0.008) comp = inkF; else if (b > 0.012 && b < 0.015) comp = accF;
+                    if (b < 0.015) comp = voidC; if (b < 0.008) comp = inkF; else if (b > 0.012 && b < 0.015) comp = accF;
                 }
             }
             outColor = vec4(clamp(comp, 0.0, 1.0), 1.0);
