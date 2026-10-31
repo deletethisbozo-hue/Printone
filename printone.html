@@ -1909,7 +1909,17 @@
                 float fine = smoothstep(0.035, 0.075, dd + (0.5 - tp) * 0.03);
                 // tone hatching: continuous lines flowing along the form, density follows darkness
                 float lmp = 0.5 * (f2 + f3);
-                float dkp = clamp((0.80 - lmp) / 0.65, 0.0, 1.0);
+                // local tone normalisation: judge darkness relative to the wide surround so shadows keep structure
+                float bigM = 0.0;
+                for (int n = 0; n < 8; n++) {
+                    float a = float(n) * 0.7854 + 0.4;
+                    bigM += lumAt(v_uv + vec2(cos(a), sin(a)) * pxs * 45.0);
+                }
+                bigM /= 8.0;
+                float tn = clamp(0.42 + (lmp - bigM) * 1.9 + (lmp - 0.3) * 0.9, 0.0, 1.0);
+                if (lmp < 0.05 && bigM < 0.10) tn = 0.0;
+                float dkp = clamp((0.80 - tn) / 0.65, 0.0, 1.0);
+                flatC = tn < 0.30 ? u_pal[0] : (tn < 0.66 ? u_pal[2] : u_pal[4]);
                 float zh = flowHatch(v_uv, pxs * u_resolution / px0, 0.0, 23.0, 1.7, 0.9, 0.6);
                 float hh = 1.0 - smoothstep(-0.15, 0.15, zh - (dkp * 2.4 - 1.5));
                 hh *= smoothstep(0.1, 0.3, dkp) * (1.0 - smoothstep(0.78, 0.95, dkp));
