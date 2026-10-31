@@ -1687,8 +1687,9 @@
                     float ca = cos(u_hatchAng), sa = sin(u_hatchAng);
                     vec2 q = vec2(ca * p.x + sa * p.y, -sa * p.x + ca * p.y);
                     float sp = u_hatchSp;
-                    float d1 = abs(fract(q.x / sp + wob) - 0.5) * 2.0;
-                    float d2 = abs(fract(q.y / sp + wob * 0.8 + 0.31) - 0.5) * 2.0;
+                    float form = lL * (14.0 / max(sp, 1.0));
+                    float d1 = abs(fract(q.x / sp + wob + form) - 0.5) * 2.0;
+                    float d2 = abs(fract(q.y / sp + wob * 0.8 + 0.31 - form * 0.7) - 0.5) * 2.0;
                     float dark = clamp((0.60 - lL) / 0.45, 0.0, 1.0);
                     float w1 = dark * u_hatchAmt * 1.15 * u_hatchTh;
                     float w2 = smoothstep(1.0 - u_hatchCross, 1.0 - u_hatchCross + 0.35, dark) * u_hatchAmt * 0.9 * u_hatchTh * step(0.01, u_hatchCross);
