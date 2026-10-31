@@ -2887,7 +2887,9 @@
         // Runs SegFormer-B2 in a worker so heavy inference never freezes the editor UI.
         function createSegWorker(modelId, onProgress) {
             const src = `
-                import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+                import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+                env.backends.onnx.wasm.numThreads = 1;
+                env.backends.onnx.wasm.proxy = false;
                 let pipe = null;
                 self.onmessage = async (e) => {
                     const { id, image } = e.data;
