@@ -66,7 +66,11 @@ function serveApp(request) {
   const rel = decodeURIComponent(u.pathname === '/' ? '/index.html' : u.pathname);
   const file = path.normalize(path.join(APP_DIR, rel));
   if (!file.startsWith(APP_DIR) || !fs.existsSync(file)) return new Response('Not found', { status: 404 });
-  return new Response(fs.readFileSync(file), { headers: { 'content-type': MIME[path.extname(file)] || 'application/octet-stream' } });
+  return new Response(fs.readFileSync(file), { headers: {
+    'content-type': MIME[path.extname(file)] || 'application/octet-stream',
+    'cross-origin-opener-policy': 'same-origin',
+    'cross-origin-embedder-policy': 'credentialless'
+  } });
 }
 
 // Drives the app through every model once so each file lands in the local store
