@@ -853,6 +853,13 @@
                         <p class="text-[9px] text-white/45">Nieregularne plamki tuszu o zmiennej wielkości; działa niezależnie od rastra i ziarna.</p>
                     </div>
                     <div>
+                        <label class="flex items-center justify-between text-xs cursor-pointer">
+                            <span class="text-white/80">Szum papieru i druku</span>
+                            <input type="checkbox" id="paperTexToggle" class="accent-rose-500" checked>
+                        </label>
+                        <p class="text-[9px] text-white/45">Wyłącza ziarno papieru i plamistość druku, zostawiając czystą grafikę (np. do eksportu).</p>
+                    </div>
+                    <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-white/80">Ziarno papieru</span>
                             <span id="valGrainAmount" class="font-mono text-amber-300">12%</span>
@@ -1601,6 +1608,33 @@
         uniform float u_sketchAmt;
 
         float lumAt(vec2 uv) { return dot(texture(u_xdogTex, uv).rgb, vec3(0.2126, 0.7152, 0.0722)); }
+        float hash21(vec2 p);
+        // Flow-following hatch: line-integral convolution of cell noise along the iso-tone tangent field.
+        // Returns a z-score (~N(0,1)); strokes are where it falls below a tone-dependent threshold.
+        float flowHatch(vec2 uv, vec2 px2, float rot, float seed, float cellSz, float flowAmt, float fallbackAng) {
+            vec2 fb = vec2(cos(fallbackAng), sin(fallbackAng));
+            float cr = cos(rot), sr = sin(rot);
+            float acc = 0.0;
+            for (int dir = 0; dir < 2; dir++) {
+                vec2 q = uv;
+                vec2 prev = dir == 0 ? fb : -fb;
+                for (int i = 0; i < 12; i++) {
+                    vec2 ox = vec2(40.0 * px2.x, 0.0), oy = vec2(0.0, 40.0 * px2.y);
+                    vec2 g = vec2(lumAt(q + ox) - lumAt(q - ox), lumAt(q + oy) - lumAt(q - oy));
+                    float mag = length(g);
+                    vec2 t = vec2(-g.y, g.x) / max(mag, 1e-5);
+                    float w = smoothstep(0.01, 0.07, mag) * flowAmt;
+                    t = mix(fb, t, w);
+                    if (dot(t, prev) < 0.0) t = -t;
+                    t = normalize(t + 1e-5);
+                    prev = t;
+                    vec2 tr = vec2(t.x * cr - t.y * sr, t.x * sr + t.y * cr);
+                    q += tr * 2.2 * px2;
+                    acc += hash21(floor(q / px2 / cellSz) + seed);
+                }
+            }
+            return (acc / 24.0 - 0.5) / 0.059;
+        }
 
         float hash21(vec2 p) {
             vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -1732,30 +1766,18 @@
                         lm += lumAt(v_uv + vec2(cos(a2), sin(a2)) * 14.0 * ts);
                     }
                     lm = 0.5 * (lm / 8.0 + lL);
-                    float dk = pow(clamp((0.72 - lm) / 0.6, 0.0, 1.0), 1.2);
+                    float dk = pow(clamp((0.85 - lm) / 0.7, 0.0, 1.0), 1.4);
                     float fade = smoothstep(0.03, 0.14, lm);
-                    float lmB = 0.0;
-                    for (int n3 = 0; n3 < 12; n3++) {
-                        float a3 = float(n3) * 0.5236;
-                        lmB += lumAt(v_uv + vec2(cos(a3), sin(a3)) * 38.0 * ts) + lumAt(v_uv + vec2(cos(a3 + 0.26), sin(a3 + 0.26)) * 70.0 * ts);
+                    float cellSz = max(u_hatchSp * 0.55, 1.4);
+                    float cov = dk * (0.7 + u_hatchAmt * 1.0) * u_hatchTh * 1.1;
+                    float z1 = flowHatch(v_uv, ts, 0.0, 11.0, cellSz, u_hatchFlow, u_hatchAng);
+                    float h = 1.0 - smoothstep(-0.2, 0.2, z1 - (cov * 2.6 - 1.6));
+                    float covX = clamp((dk - 0.45 + u_hatchCross * 0.2) * 1.8, 0.0, 1.0) * u_hatchAmt * 1.4;
+                    if (covX > 0.02) {
+                        float z2 = flowHatch(v_uv, ts, 0.95, 57.0, cellSz, u_hatchFlow, u_hatchAng + 1.0);
+                        h = max(h, 1.0 - smoothstep(-0.2, 0.2, z2 - (covX * 2.4 - 1.6)));
                     }
-                    lmB /= 24.0;
-                    float bend = u_hatchFlow;
-                    vec2 pw = p + vec2(valueNoise(p * 0.012), valueNoise(p * 0.012 + 9.1)) * sp * 2.0 * 0.5;
-                    float h = 0.0;
-                    for (int L = 0; L < 2; L++) {
-                        float ang = u_hatchAng + (L == 1 ? 1.5708 : 0.0);
-                        vec2 nv = vec2(-sin(ang), cos(ang));
-                        float spL = sp * (L == 1 ? 1.15 : 1.0);
-                        float s = dot(pw, nv) / spL + (lmB * 9.0 + lm * 2.5) * bend * (L == 1 ? -1.0 : 1.0);
-                        float fr = abs(fract(s) - 0.5) * 2.0;
-                        float amt = L == 0 ? dk * (0.5 + u_hatchAmt * 1.2)
-                                           : clamp((dk - (1.0 - u_hatchCross) * 0.35 - 0.35) * 2.5, 0.0, 1.0) * u_hatchAmt * 1.6;
-                        float w = clamp(amt, 0.0, 1.0) * u_hatchTh * 0.5;
-                        float aa = 0.12;
-                        h = max(h, (1.0 - smoothstep(1.0 - w - aa, 1.0 - w + aa, fr)) * step(0.02, amt));
-                    }
-                    h *= fade;
+                    h *= fade * step(0.04, dk);
                     comp = mix(comp, (k == 3) ? u_pal[1] : u_pal[0], clamp(h, 0.0, 1.0) * 0.95);
                 }
             }
@@ -2454,7 +2476,7 @@
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_splitRatio'), state.splitRatio);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_screenToneAmount'), state.screenToneAmount);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_inkSplatter'), state.inkSplatter);
-            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_grainAmount'), state.grainAmount);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_grainAmount'), document.getElementById('paperTexToggle').checked ? state.grainAmount : 0.0);
             ensureEdgeTexture();
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_2D, EDGE.tex);
@@ -2473,7 +2495,7 @@
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchCross'), state.hatchCross / 100.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchFlow'), state.hatchFlow / 100.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_lineVar'), state.lineVar / 100.0);
-            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_printAmt'), state.printAmt / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_printAmt'), document.getElementById('paperTexToggle').checked ? state.printAmt / 100.0 : 0.0);
             ensureSketchTexture();
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, SKETCH.tex);
@@ -4091,6 +4113,7 @@
         document.getElementById('paramScreenToneAmount').addEventListener('input', () => { screenToneAuto = false; });
         bindRange('paramInkSplatter', 'inkSplatter', parseInt);
         bindRange('paramGrainAmount', 'grainAmount', parseInt);
+        document.getElementById('paperTexToggle').addEventListener('change', () => execute4PassPipeline());
         bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
         bindRange('paramDepth', 'depthAmt', parseInt);
         bindRange('paramAiLines', 'aiLines', parseInt);
