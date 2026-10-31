@@ -1678,6 +1678,12 @@
         }
 
         void main() {
+            if (u_splitRatio > 0.001 && v_uv.x < u_splitRatio) {
+                // Pass 4 already wrote the untouched original here; do not stylise it again
+                float sl = smoothstep(0.0025, 0.0, abs(v_uv.x - u_splitRatio));
+                outColor = vec4(mix(texture(u_tex, v_uv).rgb, vec3(1.0, 0.15, 0.15), sl), 1.0);
+                return;
+            }
             vec3 comp = texture(u_tex, v_uv).rgb;
             if (u_smooth > 0.01) {
                 float px = max(u_resolution.x, u_resolution.y) / 1400.0;
