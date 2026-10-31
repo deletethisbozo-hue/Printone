@@ -1321,6 +1321,7 @@
         uniform float u_shadowCutoff;
         uniform float u_highCutoff;
         uniform vec4 u_toneB;
+        uniform float u_toneDev;
         uniform bool u_showFrame;
         uniform float u_splitRatio;
 
@@ -1551,6 +1552,19 @@
                 float subjectKeep = clamp(personW + fHigh * 0.7 + fSlate * 0.35, 0.0, 1.0);
                 float sidePanel = smoothstep(0.20, 0.43, abs(v_uv.x - 0.5)) * (1.0 - subjectKeep);
                 comp = mix(comp, panel, sidePanel);
+            }
+
+            // Tonal gradient-map layer: the five colours are assigned by remapped luma bands, so the share
+            // sliders move real colour boundaries. It takes over from the semantic plates as shares diverge from equal.
+            if (u_toneDev > 0.001) {
+                float tl = sculptedLuma;
+                float ab = clamp(fwidth(tl) * 0.8, 0.002, 0.01);
+                vec3 tonal = u_colorInk;
+                tonal = mix(tonal, u_colorSlate, smoothstep(0.2 - ab, 0.2 + ab, tl));
+                tonal = mix(tonal, u_colorMid,   smoothstep(0.4 - ab, 0.4 + ab, tl));
+                tonal = mix(tonal, u_colorSky,   smoothstep(0.6 - ab, 0.6 + ab, tl));
+                tonal = mix(tonal, u_colorHigh,  smoothstep(0.8 - ab, 0.8 + ab, tl));
+                comp = mix(comp, tonal, u_toneDev);
             }
 
             // --- PLATE 5: PINPOINT SPECULAR HIGHLIGHTS (Glowing Eyes, White Shirt, Knife Blade, Belt Buckle) ---
@@ -2445,6 +2459,8 @@
                 let acc = 0;
                 const b = [0, 1, 2, 3].map(i => (acc += w[i], acc / tot));
                 gl.uniform4f(gl.getUniformLocation(progPass4, 'u_toneB'), b[0], b[1], b[2], b[3]);
+                const dev = w.reduce((a, v) => a + Math.abs(v - tot / 5), 0) / tot;
+                gl.uniform1f(gl.getUniformLocation(progPass4, 'u_toneDev'), Math.min(1, dev * 1.6));
             }
             gl.uniform1i(gl.getUniformLocation(progPass4, 'u_showFrame'), state.showFrame ? 1 : 0);
             gl.uniform1f(gl.getUniformLocation(progPass4, 'u_splitRatio'), state.splitRatio);
