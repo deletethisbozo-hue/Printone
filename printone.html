@@ -796,7 +796,8 @@
                                 <option value="6">Kreskowana</option>
                             </select>
                         </div>
-                        <div class="flex justify-between text-xs"><span class="text-white/80">Pusty margines za ramką</span><span id="valFrameMargin" class="font-mono text-amber-300">5</span></div>
+                        <div class="flex items-center justify-between text-xs"><span class="text-white/80">Kolor marginesu</span><select id="marginColor" class="bg-black/40 border border-white/15 rounded px-1.5 py-1 text-xs"><option value="black">Czarny</option><option value="paper">Papier</option></select></div>
+                        <div class="flex justify-between text-xs"><span class="text-white/80">Margines za ramką</span><span id="valFrameMargin" class="font-mono text-amber-300">5</span></div>
                         <input type="range" id="frameMargin" min="1" max="15" step="0.5" value="5">
                         <p class="text-[9px] text-white/45">Za linią ramki jest czysty papier; obraz nie wychodzi poza nią.</p>
                     </div>
@@ -1679,6 +1680,7 @@
         uniform float u_penTone;
         uniform int u_frameStyle;
         uniform float u_frameMargin;
+        uniform float u_marginBlack;
         uniform sampler2D u_sketchTex; // AI line-art model output, 1 = line
         uniform float u_sketchAmt;
 
@@ -2070,11 +2072,12 @@
                 float M = u_frameMargin;
                 float b = d - M;
                 vec3 paperC = u_pal[4] * (1.0 + paperNoise * (u_grainAmount / 100.0) * 0.36);
-                vec3 inkF = u_pal[0];
+                vec3 voidC = u_marginBlack > 0.5 ? u_pal[0] : paperC;
+                vec3 inkF = u_marginBlack > 0.5 ? paperC : u_pal[0];
                 vec3 accF = u_pal[2];
                 float wob = 0.6 * valueNoise(vec2(along * 38.0, 3.7)) + 0.4 * valueNoise(vec2(along * 110.0, 5.3));
                 if (b < 0.0) {
-                    comp = paperC;
+                    comp = voidC;
                 } else if (u_frameStyle == 1) {
                     // double rule: heavy line + hairline
                     if (b < 0.010) comp = inkF; else if (b > 0.016 && b < 0.019) comp = accF;
@@ -2091,7 +2094,7 @@
                     float cs = 0.011;
                     if (b < 0.022) {
                         float ck = mod(floor(along / cs) + floor(b / cs), 2.0);
-                        comp = ck < 0.5 ? inkF : paperC;
+                        comp = ck < 0.5 ? inkF : voidC;
                     }
                     if (b > 0.026 && b < 0.029) comp = inkF;
                 } else if (u_frameStyle == 5) {
@@ -2789,6 +2792,7 @@
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_penTone'), pv('penTone'));
             gl.uniform1i(gl.getUniformLocation(progPass5, 'u_frameStyle'), parseInt(document.getElementById('frameStyle').value, 10));
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_frameMargin'), parseFloat(document.getElementById('frameMargin').value) / 100);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_marginBlack'), document.getElementById('marginColor').value === 'black' ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hardInk'), document.getElementById('hardInkToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_origPal'), document.getElementById('origPalToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchFlow'), state.hatchFlow / 100.0);
@@ -4420,6 +4424,7 @@
             document.getElementById(r.dataset.v).textContent = r.value;
             execute4PassPipeline();
         }));
+        document.getElementById('marginColor').addEventListener('change', () => execute4PassPipeline());
         document.getElementById('frameStyle').addEventListener('change', () => {
             if (!state.showFrame) { state.showFrame = true; document.getElementById('paramFrame').checked = true; }
             execute4PassPipeline();
