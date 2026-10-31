@@ -1709,7 +1709,9 @@
                 return;
             }
             vec3 comp = texture(u_tex, v_uv).rgb;
-            if (u_smooth > 0.01) {
+            // Pen mode rebuilds the image from scratch, so the legacy stroke stages would be wasted work
+            bool penOn = u_penInk > 0.5;
+            if (u_smooth > 0.01 && !penOn) {
                 float px = max(u_resolution.x, u_resolution.y) / 1400.0;
                 float stride = (0.45 + u_smooth * 1.9) * px;
                 float w[7];
@@ -1732,7 +1734,7 @@
                 comp = mix(u_pal[b2], u_pal[b1], 0.5 + 0.5 * t);
             }
 
-            if (u_edgeAmt > 0.001) {
+            if (u_edgeAmt > 0.001 && !penOn) {
                 float px0 = max(u_resolution.x, u_resolution.y) / 1400.0;
                 vec2 pp = v_uv * u_resolution / px0;
                 // Colour-plate misregistration: the key (line) plate is printed slightly off the fills
@@ -1747,13 +1749,13 @@
                 comp = mix(comp, u_pal[0], line * clamp(u_edgeAmt * 2.5, 0.0, 1.0));
             }
 
-            if (u_sketchAmt > 0.001) {
+            if (u_sketchAmt > 0.001 && !penOn) {
                 float sk = texture(u_sketchTex, v_uv).r;
                 float st = 0.60 - 0.5 * u_sketchAmt;
                 comp = mix(comp, u_pal[0], smoothstep(st, st + 0.2, sk) * clamp(u_sketchAmt * 2.5, 0.0, 1.0));
             }
 
-            if (u_xdogAmt > 0.001) {
+            if (u_xdogAmt > 0.001 && !penOn) {
                 float px = max(u_resolution.x, u_resolution.y) / 1400.0;
                 float s1 = (0.9 + 0.6 * u_xdogAmt) * px;
                 float g1 = 0.0, g2 = 0.0, w1 = 0.0, w2 = 0.0;
@@ -1796,7 +1798,7 @@
                     else if (k == 2) comp = mix(comp, u_pal[0], darkSpeck * a);
                     else if (k == 3) comp = mix(comp, u_pal[1], darkSpeck * a);
                 }
-                if (u_hatchAmt > 0.001 && k >= 1 && k <= 3) {
+                if (u_hatchAmt > 0.001 && !penOn && k >= 1 && k <= 3) {
                     // Stroke engine: each grid cell holds a bundle of pen strokes that runs along the iso-tone
                     // contour (perpendicular to the local gradient), tapers at both ends and thickens with darkness.
                     vec2 p = v_uv * u_resolution / px;
@@ -1827,12 +1829,6 @@
             }
 
             float aspect = u_resolution.x / max(u_resolution.y, 1.0);
-            if (u_showFrame == 1) {
-                vec2 edgeDist = min(v_uv, 1.0 - v_uv);
-                float d = min(edgeDist.x * aspect, edgeDist.y);
-                if (d < 0.016) comp = u_pal[0];
-                else if (d > 0.020 && d < 0.023) comp = u_pal[2];
-            }
             if (u_splitRatio > 0.001) {
                 float splitLine = smoothstep(0.0025, 0.0, abs(v_uv.x - u_splitRatio));
                 comp = mix(comp, vec3(1.0, 0.15, 0.15), splitLine);
@@ -1916,7 +1912,9 @@
                     bigM += lumAt(v_uv + vec2(cos(a), sin(a)) * pxs * 45.0);
                 }
                 bigM /= 8.0;
-                float tn = clamp(0.42 + (lmp - bigM) * 1.9 + (lmp - 0.3) * 0.9, 0.0, 1.0);
+                float tn = clamp(0.5 + min(lmp - bigM, 0.04) * 1.3 + (lmp - 0.3) * 1.4, 0.0, 1.0);
+                // inside dark masses, local highlights/creases reveal form instead of one flat black
+                tn = clamp(tn + clamp(lc - f2, -0.09, 0.09) * 5.0 * (1.0 - smoothstep(0.16, 0.38, lmp)) + 0.07 * (1.0 - smoothstep(0.05, 0.2, lmp)), 0.0, 1.0);
                 if (lmp < 0.05 && bigM < 0.10) tn = 0.0;
                 float dkp = clamp((0.80 - tn) / 0.65, 0.0, 1.0);
                 flatC = tn < 0.30 ? u_pal[0] : (tn < 0.66 ? u_pal[2] : u_pal[4]);
@@ -1978,6 +1976,13 @@
             }
             float paperNoise = valueNoise(metricUV * u_resolution.y * 0.55 + vec2(3.1, 7.7)) - 0.5;
             comp *= 1.0 + paperNoise * (u_grainAmount / 100.0) * 0.36;
+            if (u_showFrame == 1) {
+                // Drawn last so no stroke, ray, splatter or texture can spill past the border
+                vec2 edgeDist = min(v_uv, 1.0 - v_uv);
+                float d = min(edgeDist.x * aspect, edgeDist.y);
+                if (d < 0.016) comp = u_pal[0];
+                else if (d > 0.020 && d < 0.023) comp = u_pal[2];
+            }
             outColor = vec4(clamp(comp, 0.0, 1.0), 1.0);
         }
     </script>
@@ -3005,7 +3010,7 @@
             async function runUpscale(image, stage) {
                 if (!upscale) {
                     const ort = await import(ORT);
-                    ort.env.wasm.numThreads = 1;
+                    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 2) : 1;
                     const bytes = await fetchCached(UPSCALE_URL, stage);
                     upscale = { ort, session: await ort.InferenceSession.create(bytes, { executionProviders: ['wasm'] }) };
                 }
@@ -3124,7 +3129,7 @@
             async function runEdge(image, stage) {
                 if (!edge) {
                     const ort = await import(ORT);
-                    ort.env.wasm.numThreads = 1;
+                    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 2) : 1;
                     const [bytes, weights] = await Promise.all([fetchCached(EDGE_URL, stage), fetchCached(EDGE_URL + '.data', stage)]);
                     edge = {
                         ort,
@@ -3166,7 +3171,7 @@
             async function runSketch(image, stage) {
                 if (!sketch) {
                     const ort = await import(ORT);
-                    ort.env.wasm.numThreads = 1;
+                    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 2) : 1;
                     const bytes = await fetchCached(SKETCH_URL, stage);
                     sketch = { ort, session: await ort.InferenceSession.create(bytes, { executionProviders: ['wasm'] }) };
                 }
