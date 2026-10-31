@@ -854,6 +854,13 @@
                     </div>
                     <div>
                         <label class="flex items-center justify-between text-xs cursor-pointer">
+                            <span class="text-white/80">Twardy tusz (binaryzacja)</span>
+                            <input type="checkbox" id="hardInkToggle" class="accent-rose-500">
+                        </label>
+                        <p class="text-[9px] text-white/45">Ostre, czarne plamy i drobne linie z lokalnego kontrastu; kolory przyciągane do 4 płaskich barw.</p>
+                    </div>
+                    <div>
+                        <label class="flex items-center justify-between text-xs cursor-pointer">
                             <span class="text-white/80">Oryginalne kolory zdjęcia</span>
                             <input type="checkbox" id="origPalToggle" class="accent-rose-500">
                         </label>
@@ -1626,6 +1633,7 @@
         uniform float u_lineVar;
         uniform float u_printAmt;
         uniform float u_origPal;
+        uniform float u_hardInk;
         uniform sampler2D u_sketchTex; // AI line-art model output, 1 = line
         uniform float u_sketchAmt;
 
@@ -1845,6 +1853,31 @@
                 comp *= 1.0 + (valueNoise(pq * 0.045) - 0.5) * 0.20 * u_printAmt;
             }
             float px0 = max(u_resolution.x, u_resolution.y) / 1400.0;
+            if (u_hardInk > 0.01) {
+                // Hard ink: adaptive multi-scale binarisation of local contrast into crisp pen-and-ink marks
+                float lc = lumAt(v_uv);
+                float m1 = 0.0, m2 = 0.0;
+                for (int n = 0; n < 8; n++) {
+                    float a = float(n) * 0.7854;
+                    vec2 d = vec2(cos(a), sin(a)) / u_resolution * px0;
+                    m1 += lumAt(v_uv + d * 3.5);
+                    m2 += lumAt(v_uv + d * 11.0);
+                }
+                m1 /= 8.0; m2 /= 8.0;
+                float base = dot(comp, vec3(0.2126, 0.7152, 0.0722));
+                float l0h = dot(u_pal[0], vec3(0.2126, 0.7152, 0.0722));
+                float l4h = dot(u_pal[4], vec3(0.2126, 0.7152, 0.0722));
+                float tb = clamp((base - l0h) / max(l4h - l0h, 0.05), 0.0, 1.0);
+                // darker plates accept ink more easily; highlights only keep strong accents
+                float bias = mix(0.10, -0.06, tb);
+                float score = lc - (0.45 * m1 + 0.55 * m2) + bias * 0.5;
+                float inkM = 1.0 - smoothstep(-0.012, 0.012, score + (1.0 - tb) * 0.06 - 0.02);
+                inkM *= smoothstep(0.02, 0.12, tb + 0.12);
+                float solid = 1.0 - smoothstep(0.08, 0.22, tb);
+                inkM = max(inkM, solid);
+                vec3 snapped = u_pal[nearestPlate(comp)];
+                comp = mix(comp, mix(snapped, u_pal[0], inkM), u_hardInk);
+            }
             if (u_origPal > 0.5) {
                 // Original-colour mode: keep all plate/hatch/line/print structure, take hue from the photo
                 vec3 sc = vec3(0.0);
@@ -2541,6 +2574,7 @@
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchTh'), 0.4 + state.hatchThick / 100.0 * 1.4);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchAng'), state.hatchAngle * Math.PI / 180);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchCross'), state.hatchCross / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hardInk'), document.getElementById('hardInkToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_origPal'), document.getElementById('origPalToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchFlow'), state.hatchFlow / 100.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_lineVar'), state.lineVar / 100.0);
@@ -4163,6 +4197,7 @@
         bindRange('paramInkSplatter', 'inkSplatter', parseInt);
         bindRange('paramGrainAmount', 'grainAmount', parseInt);
         document.getElementById('paperTexToggle').addEventListener('change', () => execute4PassPipeline());
+        document.getElementById('hardInkToggle').addEventListener('change', () => execute4PassPipeline());
         document.getElementById('origPalToggle').addEventListener('change', () => execute4PassPipeline());
         bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
         bindRange('paramDepth', 'depthAmt', parseInt);
