@@ -770,6 +770,12 @@
                         <p class="text-[9px] text-white/45">Każdy suwak = ile zakresu tonalnego (od cieni do świateł) przejmuje dany kolor palety. Równe wartości = ustawienie domyślne.</p>
                     </div>
 
+                    <div class="pt-2 border-t border-white/10">
+                        <div class="text-xs text-white/80 mb-1">Charakter pociągnięć i druku</div>
+                        <div id="strokeBox" class="space-y-2"></div>
+                        <p class="text-[9px] text-white/45">Kreski szrafury biegną po formie, kontur ma nacisk pióra i przerwy, a druk dostaje przesunięcie płyt i nierówne krycie tuszu.</p>
+                    </div>
+
                     <div class="flex items-center justify-between pt-2 border-t border-white/10">
                         <span class="text-xs text-white/80">Rytowana ramka ryciny (Woodblock Border)</span>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -1588,8 +1594,13 @@
         uniform float u_hatchTh;
         uniform float u_hatchAng;
         uniform float u_hatchCross;
-        uniform sampler2D u_sketchTex; // AI line-art model output, 1 = line // AI line-art model output, 1 = line
+        uniform float u_hatchFlow;
+        uniform float u_lineVar;
+        uniform float u_printAmt;
+        uniform sampler2D u_sketchTex; // AI line-art model output, 1 = line
         uniform float u_sketchAmt;
+
+        float lumAt(vec2 uv) { return dot(texture(u_xdogTex, uv).rgb, vec3(0.2126, 0.7152, 0.0722)); }
 
         float hash21(vec2 p) {
             vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -1644,8 +1655,16 @@
             }
 
             if (u_edgeAmt > 0.001) {
-                float e = texture(u_edgeTex, v_uv).r;
+                float px0 = max(u_resolution.x, u_resolution.y) / 1400.0;
+                vec2 pp = v_uv * u_resolution / px0;
+                // Colour-plate misregistration: the key (line) plate is printed slightly off the fills
+                vec2 reg = vec2(1.3, -0.9) * px0 * u_printAmt * 2.2 / u_resolution;
+                float e = texture(u_edgeTex, v_uv + reg).r;
+                float lcl = lumAt(v_uv);
+                float nv = valueNoise(pp * 0.03) * 0.65 + valueNoise(pp * 0.17) * 0.35;
                 float thr = 0.80 - 0.5 * u_edgeAmt + (0.5 - u_edgeThick) * 0.5;
+                // Pen pressure: heavier in shadow, lighter in highlights, with natural breaks along the stroke
+                thr += (nv - 0.5) * 0.34 * u_lineVar + (lcl - 0.45) * 0.30 * u_lineVar;
                 float line = smoothstep(thr, thr + mix(0.04, 0.14, u_edgeThick), e);
                 comp = mix(comp, u_pal[0], line * clamp(u_edgeAmt * 2.5, 0.0, 1.0));
             }
@@ -1700,21 +1719,38 @@
                     else if (k == 3) comp = mix(comp, u_pal[1], darkSpeck * a);
                 }
                 if (u_hatchAmt > 0.001 && k >= 1 && k <= 3) {
+                    // Stroke engine: each grid cell holds a bundle of pen strokes that runs along the iso-tone
+                    // contour (perpendicular to the local gradient), tapers at both ends and thickens with darkness.
                     vec2 p = v_uv * u_resolution / px;
-                    float wob = (valueNoise(p * 0.045) - 0.5) * 2.2 + (valueNoise(p * 0.3) - 0.5) * 0.35;
-                    float ca = cos(u_hatchAng), sa = sin(u_hatchAng);
-                    vec2 q = vec2(ca * p.x + sa * p.y, -sa * p.x + ca * p.y);
                     float sp = u_hatchSp;
-                    float form = lL * (14.0 / max(sp, 1.0));
-                    float d1 = abs(fract(q.x / sp + wob + form) - 0.5) * 2.0;
-                    float d2 = abs(fract(q.y / sp + wob * 0.8 + 0.31 - form * 0.7) - 0.5) * 2.0;
-                    float dark = clamp((0.60 - lL) / 0.45, 0.0, 1.0);
-                    float w1 = dark * u_hatchAmt * 1.15 * u_hatchTh;
-                    float w2 = smoothstep(1.0 - u_hatchCross, 1.0 - u_hatchCross + 0.35, dark) * u_hatchAmt * 0.9 * u_hatchTh * step(0.01, u_hatchCross);
-                    float aa = 0.28;
-                    float h = max(1.0 - smoothstep(w1 - aa, w1 + aa * 0.5, d1), (1.0 - smoothstep(w2 - aa, w2 + aa * 0.5, d2)) * step(0.01, w2));
-                    h *= smoothstep(0.02, 0.12, dark);
-                    comp = mix(comp, (k == 3) ? u_pal[1] : u_pal[0], clamp(h, 0.0, 1.0) * 0.9);
+                    float cell = sp * 5.0;
+                    // Engraving lines: parallel, continuous lines whose phase is bent by the smoothed tone,
+                    // so they wrap around the form; width grows with darkness (no random scribbles).
+                    float lm = 0.0;
+                    for (int n2 = 0; n2 < 8; n2++) {
+                        float a2 = float(n2) * 0.7854;
+                        lm += lumAt(v_uv + vec2(cos(a2), sin(a2)) * 14.0 * ts);
+                    }
+                    lm = 0.5 * (lm / 8.0 + lL);
+                    float dk = pow(clamp((0.72 - lm) / 0.6, 0.0, 1.0), 1.2);
+                    float fade = smoothstep(0.03, 0.14, lm);
+                    float bend = u_hatchFlow * 0.04;
+                    vec2 pw = p + vec2(valueNoise(p * 0.012), valueNoise(p * 0.012 + 9.1)) * sp * 2.0 * 0.5;
+                    float h = 0.0;
+                    for (int L = 0; L < 2; L++) {
+                        float ang = u_hatchAng + (L == 1 ? 1.5708 : 0.0);
+                        vec2 nv = vec2(-sin(ang), cos(ang));
+                        float spL = sp * (L == 1 ? 1.15 : 1.0);
+                        float s = dot(pw, nv) / spL + lm * bend * 60.0 / spL * 8.0;
+                        float fr = abs(fract(s) - 0.5) * 2.0;
+                        float amt = L == 0 ? dk * (0.5 + u_hatchAmt * 1.2)
+                                           : clamp((dk - (1.0 - u_hatchCross) * 0.35 - 0.35) * 2.5, 0.0, 1.0) * u_hatchAmt * 1.6;
+                        float w = clamp(amt, 0.0, 1.0) * u_hatchTh * 0.4;
+                        float aa = 0.12;
+                        h = max(h, (1.0 - smoothstep(1.0 - w - aa, 1.0 - w + aa, fr)) * step(0.02, amt));
+                    }
+                    h *= fade;
+                    comp = mix(comp, (k == 3) ? u_pal[1] : u_pal[0], clamp(h, 0.0, 1.0) * 0.95);
                 }
             }
 
@@ -1742,6 +1778,15 @@
                 float droplets = smoothstep(0.72, 0.91, smallSplatter) * smoothstep(0.32, 0.62, largeSplatter);
                 float paperExposure = smoothstep(0.08, 0.72, tone);
                 comp = mix(comp, u_pal[0], droplets * paperExposure * (u_inkSplatter / 100.0) * 0.92);
+            }
+            if (u_printAmt > 0.001) {
+                // Uneven ink lay: dry-brush voids in heavy ink and soft tonal mottling
+                vec2 pq = v_uv * u_resolution;
+                float vn = valueNoise(pq * 0.9) * 0.55 + valueNoise(pq * 0.22) * 0.45;
+                float ptone = dot(comp, vec3(0.2126, 0.7152, 0.0722));
+                float voids = smoothstep(0.66 - 0.18 * u_printAmt, 0.80, vn) * (1.0 - smoothstep(0.25, 0.6, ptone));
+                comp = mix(comp, u_pal[4], voids * 0.55 * u_printAmt);
+                comp *= 1.0 + (valueNoise(pq * 0.045) - 0.5) * 0.20 * u_printAmt;
             }
             float paperNoise = valueNoise(metricUV * u_resolution.y * 0.55 + vec2(3.1, 7.7)) - 0.5;
             comp *= 1.0 + paperNoise * (u_grainAmount / 100.0) * 0.36;
@@ -2083,7 +2128,7 @@
             inkWeight: 88,
             lineThickness: 1.5,
             specularPop: 90,
-            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35, xdogLines: 0, detailAmt: 60, hatchAmt: 45, hatchDensity: 55, hatchThick: 50, hatchAngle: 45, hatchCross: 55, aiLineThick: 50, shareInk: 20, shareSlate: 20, shareMid: 20, shareSky: 20, shareHigh: 20, sketchLines: 40,
+            raggedness: 8, screenToneAmount: 0, inkSplatter: 0, grainAmount: 12, shapeSmooth: 60, depthAmt: 70, aiLines: 35, xdogLines: 0, detailAmt: 60, hatchAmt: 45, hatchDensity: 55, hatchThick: 50, hatchAngle: 45, hatchCross: 55, aiLineThick: 50, hatchFlow: 85, lineVar: 55, printAmt: 40, shareInk: 20, shareSlate: 20, shareMid: 20, shareSky: 20, shareHigh: 20, sketchLines: 40,
             shadowDetail: 76,
             shadowCutoff: 0.34,
             highCutoff: 0.54,
@@ -2420,6 +2465,9 @@
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchTh'), 0.4 + state.hatchThick / 100.0 * 1.4);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchAng'), state.hatchAngle * Math.PI / 180);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchCross'), state.hatchCross / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchFlow'), state.hatchFlow / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_lineVar'), state.lineVar / 100.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_printAmt'), state.printAmt / 100.0);
             ensureSketchTexture();
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, SKETCH.tex);
@@ -3859,6 +3907,12 @@
             document.getElementById('paramDetail').value = state.detailAmt;
             document.getElementById('valDetail').textContent = `${state.detailAmt}%`;
             document.getElementById('paramHatch').value = state.hatchAmt;
+            if (typeof STROKE_KEYS !== 'undefined') {
+                STROKE_KEYS.forEach(([k]) => {
+                    document.getElementById('param_' + k).value = state[k];
+                    document.getElementById('val_' + k).textContent = `${state[k]}%`;
+                });
+            }
             if (typeof SHARE_KEYS !== 'undefined') {
                 const tot = SHARE_KEYS.reduce((a, [k]) => a + Math.max(state[k], 3), 0);
                 SHARE_KEYS.forEach(([k, c], i) => {
@@ -3993,6 +4047,18 @@
                 execute4PassPipeline();
             });
         }
+
+        var STROKE_KEYS = [['hatchFlow', 'Szrafura podąża za formą'], ['lineVar', 'Nacisk i przerwy konturu'], ['printAmt', 'Niedoskonałość druku']];
+        STROKE_KEYS.forEach(([key, label]) => {
+            const row = document.createElement('div');
+            row.innerHTML = `<div class="flex justify-between text-xs mb-1"><span class="text-white/80">${label}</span><span id="val_${key}" class="font-mono text-purple-300"></span></div><input type="range" id="param_${key}" aria-label="${label}" min="0" max="100" step="1" value="50">`;
+            document.getElementById('strokeBox').appendChild(row);
+            row.querySelector('input').addEventListener('input', (e) => {
+                state[key] = parseInt(e.target.value);
+                syncSlidersUI();
+                execute4PassPipeline();
+            });
+        });
 
         var SHARE_KEYS = [['shareInk', 'colorInk'], ['shareSlate', 'colorSlate'], ['shareMid', 'colorMid'], ['shareSky', 'colorSky'], ['shareHigh', 'colorHigh']];
         const shareBox = document.getElementById('shareBox');
