@@ -861,6 +861,13 @@
                     </div>
                     <div>
                         <label class="flex items-center justify-between text-xs cursor-pointer">
+                            <span class="text-white/80">Rycina piórem v2 (cienkie linie)</span>
+                            <input type="checkbox" id="pen2Toggle" class="accent-rose-500">
+                        </label>
+                        <p class="text-[9px] text-white/45">Osobny wariant: ostre płyty, gęste cienkie kontury i architektura, drobna szrafura w szarej płycie, rozbryzgi przy krawędziach.</p>
+                    </div>
+                    <div>
+                        <label class="flex items-center justify-between text-xs cursor-pointer">
                             <span class="text-white/80">Twardy tusz (binaryzacja)</span>
                             <input type="checkbox" id="hardInkToggle" class="accent-rose-500">
                         </label>
@@ -1642,6 +1649,7 @@
         uniform float u_origPal;
         uniform float u_hardInk;
         uniform float u_penInk;
+        uniform float u_pen2;
         uniform sampler2D u_sketchTex; // AI line-art model output, 1 = line
         uniform float u_sketchAmt;
 
@@ -1710,7 +1718,7 @@
             }
             vec3 comp = texture(u_tex, v_uv).rgb;
             // Pen mode rebuilds the image from scratch, so the legacy stroke stages would be wasted work
-            bool penOn = u_penInk > 0.5;
+            bool penOn = u_penInk > 0.5 || u_pen2 > 0.5;
             if (u_smooth > 0.01 && !penOn) {
                 float px = max(u_resolution.x, u_resolution.y) / 1400.0;
                 float stride = (0.45 + u_smooth * 1.9) * px;
@@ -1956,6 +1964,49 @@
                 vec3 baseC = mix(flatC, u_pal[0], inkP);
                 baseC = mix(baseC, rayC, ray * (1.0 - fine * 0.5));
                 comp = mix(comp, baseC, u_penInk);
+            }
+            if (u_pen2 > 0.01) {
+                // Pen v2: crisp 3-plate tone, thin contour/architecture lines at two scales, fine tone-bent hatching in the mid plate, edge splatter
+                vec2 pxs = vec2(px0) / u_resolution;
+                float lc = lumAt(v_uv);
+                float g1 = 0.0, g2 = 0.0, g3 = 0.0, bg = 0.0;
+                for (int n = 0; n < 8; n++) {
+                    float a = float(n) * 0.7854 + 0.2;
+                    vec2 d = vec2(cos(a), sin(a)) * pxs;
+                    g1 += lumAt(v_uv + d * 1.1);
+                    g2 += lumAt(v_uv + d * 2.6);
+                    g3 += lumAt(v_uv + d * 9.0);
+                    bg += lumAt(v_uv + vec2(cos(a + 0.2), sin(a + 0.2)) * pxs * 40.0);
+                }
+                g1 /= 8.0; g2 /= 8.0; g3 /= 8.0; bg /= 8.0;
+                float lm = 0.5 * (g2 + g3);
+                float t2 = clamp(0.5 + min(lm - bg, 0.04) * 1.3 + (lm - 0.3) * 1.4, 0.0, 1.0);
+                t2 = clamp(t2 + clamp(lc - g3, -0.09, 0.09) * 5.0 * (1.0 - smoothstep(0.16, 0.38, lm)) + 0.07 * (1.0 - smoothstep(0.05, 0.2, lm)), 0.0, 1.0);
+                if (lm < 0.05 && bg < 0.10) t2 = 0.0;
+                vec3 plate = t2 < 0.30 ? u_pal[0] : (t2 < 0.66 ? u_pal[2] : u_pal[4]);
+                float dl = 0.6 * (g1 - lc) + 0.9 * (g2 - lc);
+                float line = smoothstep(0.022, 0.05, dl);
+                float line2 = smoothstep(0.03, 0.07, g3 - lc) * 0.8;
+                float dk2 = clamp((0.72 - t2) / 0.55, 0.0, 1.0);
+                vec2 pq = v_uv * u_resolution / px0;
+                float lS = 0.5 * (g3 + bg);
+                float q1 = (pq.x * 0.87 + pq.y * 0.49) / 2.4 + lS * 30.0;
+                float q2 = (pq.x * 0.50 - pq.y * 0.87) / 2.6 + lS * 22.0;
+                float e1 = fwidth(q1) * 1.4 + 0.02;
+                float e2 = fwidth(q2) * 1.4 + 0.02;
+                float wa = clamp(dk2, 0.0, 0.8);
+                float wb = clamp((dk2 - 0.55) * 1.8, 0.0, 0.7);
+                float ha = 1.0 - smoothstep(wa - e1, wa + e1, abs(fract(q1) - 0.5) * 2.0);
+                float hb = 1.0 - smoothstep(wb - e2, wb + e2, abs(fract(q2) - 0.5) * 2.0);
+                float hat = max(ha * step(0.02, wa), hb * step(0.02, wb)) * smoothstep(0.06, 0.2, dk2) * (1.0 - smoothstep(0.85, 0.97, dk2));
+                float nearEdge = smoothstep(0.08, 0.22, abs(g3 - g2) + abs(lc - g3) * 0.5);
+                vec2 sg = v_uv * u_resolution / (px0 * 2.6);
+                vec2 sc2 = floor(sg);
+                vec2 sf = fract(sg) - 0.5 + (vec2(hash21(sc2 + 3.1), hash21(sc2 + 9.7)) - 0.5) * 0.4;
+                float srad = 0.10 + 0.28 * hash21(sc2 + 5.5);
+                float spk = step(1.0 - 0.07 * nearEdge, hash21(sc2)) * (1.0 - smoothstep(srad - 0.06, srad, length(sf)));
+                float ink2 = clamp(max(max(line, line2), max(hat, spk)), 0.0, 1.0);
+                comp = mix(comp, mix(plate, u_pal[0], ink2), u_pen2);
             }
             if (u_origPal > 0.5) {
                 // Original-colour mode: keep all plate/hatch/line/print structure, take hue from the photo
@@ -2661,6 +2712,7 @@
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchAng'), state.hatchAngle * Math.PI / 180);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchCross'), state.hatchCross / 100.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_penInk'), document.getElementById('penInkToggle').checked ? 1.0 : 0.0);
+            gl.uniform1f(gl.getUniformLocation(progPass5, 'u_pen2'), document.getElementById('pen2Toggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hardInk'), document.getElementById('hardInkToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_origPal'), document.getElementById('origPalToggle').checked ? 1.0 : 0.0);
             gl.uniform1f(gl.getUniformLocation(progPass5, 'u_hatchFlow'), state.hatchFlow / 100.0);
@@ -4285,6 +4337,7 @@
         bindRange('paramGrainAmount', 'grainAmount', parseInt);
         document.getElementById('paperTexToggle').addEventListener('change', () => execute4PassPipeline());
         document.getElementById('penInkToggle').addEventListener('change', () => execute4PassPipeline());
+        document.getElementById('pen2Toggle').addEventListener('change', () => execute4PassPipeline());
         document.getElementById('hardInkToggle').addEventListener('change', () => execute4PassPipeline());
         document.getElementById('origPalToggle').addEventListener('change', () => execute4PassPipeline());
         bindRange('paramShapeSmooth', 'shapeSmooth', parseInt);
